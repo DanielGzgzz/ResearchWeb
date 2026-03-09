@@ -207,6 +207,7 @@ scene.add(starsMesh);
 // --- PARTICLE FACTORIES ---
 let currentMeshes = [];
 let time = 0;
+let annihilated = false;
 
 function createGeonMaterial(twistFactor, isNeutral=false) {
     // If neutral (e.g. neutron), we map to greys/desaturated colors to show macro neutrality
@@ -456,7 +457,6 @@ selectDropdown.addEventListener('change', (e) => goToStep(parseInt(e.target.valu
 goToStep(0);
 // Animation Loop
 const clock = new THREE.Clock();
-let annihilated = false;
 
 function animate() {
     requestAnimationFrame(animate);
