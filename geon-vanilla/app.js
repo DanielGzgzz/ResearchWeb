@@ -4,11 +4,13 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // --- STATE: ENGINE CONTROLS ---
 const SIM_STATE = {
     speed: 1.0,
+    paused: false,
     wireframe: false,
     vectors: true,
-    fps: 0,
-    frames: 0,
-    lastFpsTime: 0
+    trails: false,
+    lightMode: false,
+    lightPolarization: 0,
+    lightWavelength: 1.0,
 };
 
 // --- DATA: SIMULATION PRESETS ---
@@ -69,34 +71,53 @@ const tourSteps = [
     },
     {
         id: 'water',
-        title: '6. Water Molecule (H₂O)',
-        desc: 'Two hydrogen atoms geometrically bonded to a massive central Oxygen nucleus (8 protons, 8 neutrons). A total of 10 electrons dynamically orbit the composite nuclear structure.',
+        title: '6. Water Molecule (H₂O) & Polarization',
+        desc: 'Two hydrogen atoms geometrically bonded to a central Oxygen nucleus. The bond angle of 104.5° is formed by intersecting Casimir shadow gradients. Here, we observe the complex interaction of 10 electrons orbiting the tri-core structure.',
         math: [
-            { label: 'Nuclear Fusion Hard Stop', expr: '\\Delta A_{shadow} \\approx 0.268 \\text{ fm}^2' }
+            { label: 'Refractive Delay', expr: 'n = \\frac{c}{v_m} = 1 + (N_v \\cdot c \\cdot \\sigma \\cdot \\Delta t)' }
         ],
-        features: ['Oxygen-16 core (8p, 8n)', 'Two bounding Hydrogen cores (2p)', '10 dynamically orbiting Electrons at constant scale'],
+        features: ['Oxygen-16 core (8p, 8n) bounded by 2 Protons', '10 dynamically orbiting Electrons sharing shells', 'Demonstrates geometric constraints of complex molecules'],
         cameraPos: { x: 0, y: 0, z: 35 },
     },
     {
         id: 'gold',
-        title: '7. The Gold Atom (Au)',
-        desc: 'A massive, complex macroscopic composite of 79 Protons and 118 Neutrons forming a deeply shadowed Casimir well, surrounded by exactly 79 constant-scale orbiting electrons in interlocking shells.',
+        title: '7. The Gold Atom (Au) & Probability Clouds',
+        desc: 'A massive composite of 79 Protons and 118 Neutrons forming a deeply shadowed Casimir well. To observe Schrödinger probability density, enable "Schrödinger Clouds" below to trace the electrons.',
         math: [
-            { label: 'The Gezin Radius', expr: 'R_{gezin} = R_p \\sqrt[3]{\\frac{M}{m_p}}' }
+            { label: 'Relativistic Absorption Shift', expr: '\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}' }
         ],
-        features: ['79 Protons / 118 Neutrons tightly packed core', '79 individually orbiting constant-scale electrons', 'Massive shadow well nearing collapse boundary'],
+        features: ['79 Protons / 118 Neutrons tightly packed core', '79 individually orbiting constant-scale electrons', 'High v = 0.58c velocities in inner shells'],
         cameraPos: { x: 0, y: 0, z: 60 },
     },
     {
         id: 'annihilation',
         title: '8. Positron-Electron Annihilation',
-        desc: 'An electron meets its geometric inverse (the positron). Their opposing Möbius twists cancel, unspooling the confined circular tracks back into pure linear gamma radiation.',
+        desc: 'An electron meets its geometric inverse. Their mirrored chiralities cause absolute destructive interference upon collision, shattering the vacuum lock and unspooling into gamma radiation.',
         math: [
-            { label: 'Pair Production / Annihilation Threshold', expr: 'E_{crit} = 1.02199 \\text{ MeV}' },
-            { label: 'Emitted Photon Wavelength', expr: '\\lambda_{crit} = 1.213 \\text{ pm}' }
+            { label: 'Annihilation Threshold', expr: 'E_{crit} = 1.02199 \\text{ MeV}' },
         ],
-        features: ['Electron (Twist +2)', 'Positron (Twist -2)', 'Unspools into pure linear photons (Sinusoidal waves)'],
+        features: ['Electron (Twist +2)', 'Positron (Twist -2)', 'Unspools into pure linear photons upon impact'],
         cameraPos: { x: 0, y: 0, z: 25 },
+    },
+    {
+        id: 'gravity',
+        title: '9. Casimir Gravity & Tidal Locking',
+        desc: 'Gravity is not curved space; it is the Casimir pressure gradient formed by geometric shadowing. When two macroscopic bodies overlap shadows, the vacuum pushes them together. Close proximity induces tidal locking (face-to-face alignment) of their internal topologies.',
+        math: [
+            { label: 'Gravitational Force', expr: 'F_g = \\frac{G m_1 m_2}{r^2}' }
+        ],
+        features: ['Massive Body 1 (Earth analog)', 'Massive Body 2 (Moon analog)', 'Tidally locked orbiting topologies'],
+        cameraPos: { x: 0, y: 0, z: 80 },
+    },
+    {
+        id: 'custom',
+        title: '10. Custom Atomic Builder',
+        desc: 'Input Z (Protons), Neutrons, and Electrons below to simulate an arbitrary atomic superposition. The engine will geometrically pack the nucleus and generate approximate valence shells.',
+        math: [
+            { label: 'Nuclear Core Packing Volume', expr: 'V = \\frac{4}{3}\\pi (R_p \\sqrt[3]{A})^3' }
+        ],
+        features: ['Interactive Core Builder', 'Dynamic Electron Shell Generator', 'Real-time Superposition Engine'],
+        cameraPos: { x: 0, y: 0, z: 40 },
     }
 ];
 
@@ -238,7 +259,9 @@ function createGeonMaterial(twistFactor, isNeutral=false) {
             uTwistFactor: { value: twistFactor },
         },
         side: THREE.DoubleSide,
-        wireframe: SIM_STATE.wireframe
+        wireframe: SIM_STATE.wireframe,
+        transparent: true,
+        opacity: SIM_STATE.lightMode ? 0.3 : 1.0 // Dim topology if focusing on light prop
     });
 }
 
@@ -300,6 +323,29 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     return mesh;
 }
 
+function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
+    const points = [];
+    // Only polarization (no circular twist)
+    const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
+
+    for(let i=0; i<100; i++) {
+        let t = i/100 * length;
+        let wave = Math.sin(t * (1.0 / SIM_STATE.lightWavelength)) * amplitude;
+
+        let py = Math.cos(polRad) * wave;
+        let pz = Math.sin(polRad) * wave;
+
+        points.push(new THREE.Vector3(t+pos[0], py+pos[1], pz+pos[2]));
+    }
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 3 });
+    const line = new THREE.Line(geometry, material);
+    line.userData = { type: 'linear_photon', length, amplitude, timeOffset: 0, origin: pos };
+    scene.add(line);
+    currentMeshes.push(line);
+    return line;
+}
+
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
     const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 20, true);
@@ -324,6 +370,16 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
     // Remove from main static list so it doesn't get standard static rotation mixed up
     currentMeshes.splice(currentMeshes.indexOf(electron), 1);
 
+
+    // Create Trail for Schrodinger Probability Cloud
+    const trailGeom = new THREE.BufferGeometry();
+    const trailPositions = new Float32Array(50 * 3); // 50 tail segments
+    trailGeom.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+    const trailMat = new THREE.LineBasicMaterial({ color: 0x4444ff, transparent: true, opacity: 0.4 });
+    const trail = new THREE.Line(trailGeom, trailMat);
+    trail.visible = SIM_STATE.trails;
+    scene.add(trail);
+
     // Setup orbital properties
     const orbitObj = {
         mesh: electron,
@@ -333,7 +389,10 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
         angle: Math.random() * Math.PI * 2,
         planeRotX: orbitPlaneRotation[0],
         planeRotY: orbitPlaneRotation[1],
-        planeRotZ: orbitPlaneRotation[2]
+        planeRotZ: orbitPlaneRotation[2],
+        trail: trail,
+        trailPositions: [],
+        trailMax: 50
     };
     currentOrbiters.push(orbitObj);
 }
@@ -397,7 +456,12 @@ function renderPhotonWave(length=10, amplitude=1, pos=[0,0,0], axis='x', reverse
 }
 
 function clearScene() {
-    const allObjects = [...currentMeshes, ...currentOrbiters.map(o => o.mesh)];
+    let allObjects = [...currentMeshes];
+    currentOrbiters.forEach(o => {
+        allObjects.push(o.mesh);
+        if(o.trail) allObjects.push(o.trail);
+    });
+
     allObjects.forEach(obj => {
         scene.remove(obj);
         if (obj.isGroup) {
@@ -427,17 +491,27 @@ const selectDropdown = document.getElementById('tour-select');
 // Sim Controls
 const inputSpeed = document.getElementById('sim-speed');
 const speedVal = document.getElementById('speed-val');
+const btnPlayPause = document.getElementById('btn-play-pause');
+const btnResetCam = document.getElementById('btn-reset-cam');
+
 const chkWireframe = document.getElementById('toggle-wireframe');
 const chkVectors = document.getElementById('toggle-vectors');
+const chkTrails = document.getElementById('toggle-trails');
+const chkLightMode = document.getElementById('toggle-light-mode');
 
-// Telemetry HUD Elements
-const hudFps = document.getElementById('hud-fps');
-const hudTime = document.getElementById('hud-time');
-const hudTopology = document.getElementById('hud-topology');
-const hudPhase = document.getElementById('hud-phase');
-const hudPoynting = document.getElementById('hud-poynting');
-const hudErms = document.getElementById('hud-erms');
-const hudBrms = document.getElementById('hud-brms');
+// Light Propagator Editor
+const lightEditorHud = document.getElementById('light-editor-hud');
+const valPolarization = document.getElementById('val-polarization');
+const inputPolarization = document.getElementById('sim-polarization');
+const valWavelength = document.getElementById('val-wavelength');
+const inputWavelength = document.getElementById('sim-wavelength');
+
+// Atom Builder
+const atomBuilderUI = document.getElementById('atom-builder');
+const inputZ = document.getElementById('build-z');
+const inputN = document.getElementById('build-n');
+const inputE = document.getElementById('build-e');
+const btnBuildAtom = document.getElementById('btn-build-atom');
 
 let currentStepIndex = 0;
 
@@ -502,70 +576,91 @@ window.switchPhenomenon = (type) => {
     clearScene();
     annihilated = false; // Reset state
 
+    // Atom Builder Visibility
+    if (type === 'custom') atomBuilderUI.classList.remove('hidden');
+    else atomBuilderUI.classList.add('hidden');
+
+    if (SIM_STATE.lightMode) {
+        // OVERRIDE: If Light Mode is on, just show raw light waves
+        renderLinearPhoton(30, 4, [-15, 0, 0]);
+        return;
+    }
+
     if (type === 'vacuum') {
-        hudTopology.textContent = 'VACUUM_STATE';
+        // Just the starry background
     } else if (type === 'electron') {
-        hudTopology.textContent = 'LEPTON_MOBIUS_4PI';
         renderElectron(2, 0.3);
     } else if (type === 'proton') {
-        hudTopology.textContent = 'HADRON_TREFOIL_32';
         renderProton(2, 0.4);
     } else if (type === 'hydrogen') {
-        hudTopology.textContent = 'PROTIUM_H1';
         packNucleus(1, 0, 0.6); // 1p, 0n
         addOrbitingElectron(new THREE.Vector3(0,0,0), 5, 2.0, [0, 0, 0]);
     } else if (type === 'deuterium') {
-        hudTopology.textContent = 'DEUTERIUM_H2';
         packNucleus(1, 1, 0.6); // 1p, 1n
         addOrbitingElectron(new THREE.Vector3(0,0,0), 6, 1.8, [Math.PI/4, 0, 0]);
     } else if (type === 'water') {
-        hudTopology.textContent = 'H2O_MOLECULE';
-
         // Central Oxygen 16 (8p, 8n)
         packNucleus(8, 8, 0.4);
-
         // Hydrogen Bonds (1p each at 104.5 degrees approx)
         const h1 = packNucleus(1, 0, 0.4);
-        h1.position.set(4, -2, 0);
+        h1.position.set(5, -3, 0);
         const h2 = packNucleus(1, 0, 0.4);
-        h2.position.set(-4, -2, 0);
+        h2.position.set(-5, -3, 0);
 
-        // 10 Electrons total (O:8 + H:2) orbiting the composite structure
-        for(let i=0; i<2; i++) addOrbitingElectron(new THREE.Vector3(0,0,0), 3, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Inner shell
-        for(let i=0; i<8; i++) addOrbitingElectron(new THREE.Vector3(0,-1,0), 7, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Outer shell crossing all
+        // 10 Electrons total
+        for(let i=0; i<2; i++) addOrbitingElectron(new THREE.Vector3(0,0,0), 3, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Inner O shell
+        for(let i=0; i<8; i++) addOrbitingElectron(new THREE.Vector3(0,-1,0), 8, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Outer sharing shell
 
     } else if (type === 'gold') {
-        hudTopology.textContent = 'MACRO_Au79';
-        // Massive nucleus: 79p, 118n
         const core = packNucleus(79, 118, 0.2);
-
-        // 79 distinct orbiting electrons in shells
         const shells = [
-            { n: 2, r: 4, s: 3.0 },
-            { n: 8, r: 6, s: 2.5 },
-            { n: 18, r: 9, s: 2.0 },
-            { n: 32, r: 13, s: 1.5 },
-            { n: 18, r: 18, s: 1.0 },
-            { n: 1, r: 24, s: 0.5 } // Valence
+            { n: 2, r: 4, s: 3.0 }, { n: 8, r: 6, s: 2.5 }, { n: 18, r: 9, s: 2.0 },
+            { n: 32, r: 13, s: 1.5 }, { n: 18, r: 18, s: 1.0 }, { n: 1, r: 24, s: 0.5 }
         ];
-
         shells.forEach(shell => {
             for(let i=0; i<shell.n; i++) {
-                addOrbitingElectron(
-                    new THREE.Vector3(0,0,0),
-                    shell.r + (Math.random()-0.5), // slight jitter
-                    shell.s + (Math.random()*0.2),
-                    [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]
-                );
+                addOrbitingElectron(new THREE.Vector3(0,0,0), shell.r + (Math.random()-0.5), shell.s + (Math.random()*0.2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
             }
         });
 
     } else if (type === 'annihilation') {
-        hudTopology.textContent = 'PAIR_ANNIHILATION';
         renderElectron(2, 0.3, [-5, 0, 0]);
         renderElectron(2, 0.3, [5, 0, 0], true); // Positron
         currentMeshes[0].userData.velocity = [0.03, 0, 0];
         currentMeshes[1].userData.velocity = [-0.03, 0, 0];
+
+    } else if (type === 'gravity') {
+        // Earth and Moon analog
+        const earth = packNucleus(30, 30, 0.3);
+        earth.position.set(0,0,0);
+
+        const moon = packNucleus(10, 10, 0.2);
+        moon.position.set(20, 0, 0);
+
+        // Tidally locked electron orbiting moon
+        addOrbitingElectron(new THREE.Vector3(20,0,0), 4, 1.0, [0,0,0]);
+
+    } else if (type === 'custom') {
+        // Read custom builder values
+        const z = parseInt(inputZ.value) || 1;
+        const n = parseInt(inputN.value) || 0;
+        const e = parseInt(inputE.value) || 1;
+
+        packNucleus(z, n, 0.3);
+
+        // Very basic shell distributor for custom mode
+        let ePlaced = 0;
+        let shellR = 4;
+        while(ePlaced < e) {
+            let capacity = 2 * Math.pow((shellR/4), 2); // pseudo-capacity
+            if(capacity < 2) capacity = 2;
+            let toPlace = Math.min(e - ePlaced, Math.floor(capacity));
+            for(let i=0; i<toPlace; i++) {
+                 addOrbitingElectron(new THREE.Vector3(0,0,0), shellR, 3.0 / (shellR/2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
+            }
+            ePlaced += toPlace;
+            shellR += 3;
+        }
     }
 
     // Set wireframe state on freshly created materials
@@ -597,6 +692,23 @@ btnPrev.addEventListener('click', () => goToStep(currentStepIndex - 1));
 btnNext.addEventListener('click', () => goToStep(currentStepIndex + 1));
 selectDropdown.addEventListener('change', (e) => goToStep(parseInt(e.target.value)));
 
+btnPlayPause.addEventListener('click', () => {
+    SIM_STATE.paused = !SIM_STATE.paused;
+    btnPlayPause.innerHTML = SIM_STATE.paused
+        ? '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg><span>Play Sim</span>'
+        : '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg><span>Pause Sim</span>';
+});
+
+btnResetCam.addEventListener('click', () => {
+    const step = tourSteps[currentStepIndex];
+    if(step.cameraPos) targetCameraPos.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
+    controls.reset();
+});
+
+btnBuildAtom.addEventListener('click', () => {
+    window.switchPhenomenon('custom');
+});
+
 inputSpeed.addEventListener('input', (e) => {
     SIM_STATE.speed = parseFloat(e.target.value);
     speedVal.textContent = SIM_STATE.speed.toFixed(1) + 'x';
@@ -609,13 +721,38 @@ chkWireframe.addEventListener('change', (e) => {
 
 chkVectors.addEventListener('change', (e) => {
     SIM_STATE.vectors = e.target.checked;
-    // Hide/Show vector groups
     const allObjects = [...currentMeshes, ...currentOrbiters.map(o => o.mesh)];
     allObjects.forEach(mesh => {
-        if(mesh.userData.vectors && mesh.userData.vectors.group) {
-            mesh.userData.vectors.group.visible = SIM_STATE.vectors;
-        }
+        if(mesh.userData.vectors && mesh.userData.vectors.group) mesh.userData.vectors.group.visible = SIM_STATE.vectors;
     });
+});
+
+chkTrails.addEventListener('change', (e) => {
+    SIM_STATE.trails = e.target.checked;
+    currentOrbiters.forEach(o => {
+        if(o.trail) o.trail.visible = SIM_STATE.trails;
+    });
+});
+
+chkLightMode.addEventListener('change', (e) => {
+    SIM_STATE.lightMode = e.target.checked;
+    if (SIM_STATE.lightMode) {
+        lightEditorHud.classList.remove('hidden');
+    } else {
+        lightEditorHud.classList.add('hidden');
+    }
+    // Refresh current step to apply visual override
+    window.switchPhenomenon(tourSteps[currentStepIndex].id);
+});
+
+inputPolarization.addEventListener('input', (e) => {
+    SIM_STATE.lightPolarization = parseInt(e.target.value);
+    valPolarization.textContent = SIM_STATE.lightPolarization + '°';
+});
+
+inputWavelength.addEventListener('input', (e) => {
+    SIM_STATE.lightWavelength = parseFloat(e.target.value);
+    valWavelength.textContent = SIM_STATE.lightWavelength.toFixed(1);
 });
 
 // INITIALIZATION
@@ -623,35 +760,7 @@ goToStep(0);
 // Animation Loop
 const clock = new THREE.Clock();
 
-function updateTelemetry(dt, activeTopology) {
-    SIM_STATE.frames++;
-    if (time - SIM_STATE.lastFpsTime >= 1.0) {
-        SIM_STATE.fps = SIM_STATE.frames;
-        hudFps.textContent = `FPS: ${SIM_STATE.fps}`;
-        SIM_STATE.frames = 0;
-        SIM_STATE.lastFpsTime = time;
-    }
-
-    hudTime.textContent = time.toFixed(3) + 's';
-
-    // Simulate dynamic physical readout based on time
-    const phase = (time * Math.PI * 2 * SIM_STATE.speed) % (Math.PI * 2);
-    hudPhase.textContent = phase.toFixed(2) + ' rad';
-
-    if (activeTopology !== 'VACUUM_STATE') {
-        hudPoynting.textContent = (Math.abs(Math.sin(time)) * 299792).toFixed(2) + ' W/m²';
-        hudErms.textContent = (Math.abs(Math.cos(time * 2)) * 137).toFixed(2) + ' V/m';
-        hudBrms.textContent = (Math.abs(Math.cos(time * 2)) * 0.5).toFixed(2) + ' T';
-
-        // Mutate tensor visually slightly
-        document.getElementById('t00').textContent = (1.0 + Math.sin(time)*0.01).toFixed(2);
-        document.getElementById('t11').textContent = (-1.0 + Math.cos(time)*0.01).toFixed(2);
-    } else {
-        hudPoynting.textContent = '0.00 W/m²';
-        hudErms.textContent = '0.00 V/m';
-        hudBrms.textContent = '0.00 T';
-    }
-}
+// Telemetry removed per user request
 
 function updateFieldVectors(mesh, timeVal) {
     if(!mesh.userData.vectors || !mesh.userData.vectors.group.visible) return;
@@ -694,10 +803,15 @@ function updateFieldVectors(mesh, timeVal) {
 
 function animate() {
     requestAnimationFrame(animate);
-    const dt = clock.getDelta() * SIM_STATE.speed;
-    time += dt;
+    const rawDt = clock.getDelta();
+    if(SIM_STATE.paused) {
+        controls.update();
+        renderer.render(scene, camera);
+        return;
+    }
 
-    updateTelemetry(dt, hudTopology.textContent);
+    const dt = rawDt * SIM_STATE.speed;
+    time += dt;
 
     currentMeshes.forEach(mesh => {
         // Rotations
@@ -734,6 +848,25 @@ function animate() {
                 let p = [0,0,0];
                 if(mesh.userData.axis === 'x') p = [t, Math.sin(t)*4, Math.cos(t)*4];
                 points.push(new THREE.Vector3(p[0], p[1], p[2]));
+            }
+            mesh.geometry.setFromPoints(points);
+        }
+
+        // Linear EM Propagation Mode Editor
+        if(mesh.userData.type === 'linear_photon') {
+            mesh.userData.timeOffset += dt * 10;
+            const points = [];
+            const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
+            const pos = mesh.userData.origin;
+            for(let i=0; i<100; i++) {
+                let t = i/100 * mesh.userData.length;
+                let wavePhase = (t - mesh.userData.timeOffset) * (1.0 / SIM_STATE.lightWavelength);
+                let wave = Math.sin(wavePhase) * mesh.userData.amplitude;
+
+                let py = Math.cos(polRad) * wave;
+                let pz = Math.sin(polRad) * wave;
+
+                points.push(new THREE.Vector3(t+pos[0], py+pos[1], pz+pos[2]));
             }
             mesh.geometry.setFromPoints(points);
         }
@@ -783,6 +916,22 @@ function animate() {
             orbiter.mesh.material.uniforms.uTime.value = time;
         }
         updateFieldVectors(orbiter.mesh, time);
+
+        // Update Trail for probability cloud
+        if(SIM_STATE.trails && orbiter.trail) {
+            orbiter.trailPositions.push(orbiter.mesh.position.clone());
+            if(orbiter.trailPositions.length > orbiter.trailMax) {
+                orbiter.trailPositions.shift();
+            }
+            const positions = orbiter.trail.geometry.attributes.position.array;
+            for(let i=0; i<orbiter.trailPositions.length; i++) {
+                positions[i*3] = orbiter.trailPositions[i].x;
+                positions[i*3+1] = orbiter.trailPositions[i].y;
+                positions[i*3+2] = orbiter.trailPositions[i].z;
+            }
+            orbiter.trail.geometry.attributes.position.needsUpdate = true;
+            orbiter.trail.geometry.setDrawRange(0, orbiter.trailPositions.length);
+        }
     });
 
     // Smooth camera interpolation
