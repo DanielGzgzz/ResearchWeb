@@ -489,7 +489,12 @@ function updateUI() {
 
     docContainer.innerHTML = html;
 
-    setTimeout(renderMathElements, 50);
+    // Ensure KaTeX is fully loaded via the CDN before attempting to render equations
+    if (document.readyState === 'complete') {
+        renderMathElements();
+    } else {
+        window.addEventListener('load', renderMathElements);
+    }
 }
 
 // Global switch function based on step ID

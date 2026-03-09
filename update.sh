@@ -8,10 +8,13 @@ echo "=========================================================="
 echo " Geon Framework Updater"
 echo "=========================================================="
 
-# Ensure we are inside the git repository
-if [ ! -d ".git" ]; then
-    echo "Error: This script must be run from the root of the Geon repository."
-    echo "Please cd into the repository directory and try again."
+# Always change to the directory where this script resides
+cd "$(dirname "$0")"
+
+# Ensure we are inside a git repository
+if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Error: This script must be run inside the Geon git repository."
+    echo "Make sure you downloaded this folder via 'git clone'."
     exit 1
 fi
 
