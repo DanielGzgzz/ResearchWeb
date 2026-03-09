@@ -206,7 +206,7 @@ const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020205);
 
-const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 10000);
 camera.position.z = 10;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -225,13 +225,13 @@ scene.add(pointLight);
 
 // Stars
 const starsGeometry = new THREE.BufferGeometry();
-const starsCount = 2000;
+const starsCount = 3000;
 const posArray = new Float32Array(starsCount * 3);
 for(let i = 0; i < starsCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 100;
+    posArray[i] = (Math.random() - 0.5) * 2000;
 }
 starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const starsMaterial = new THREE.PointsMaterial({ size: 0.1, color: 0xffffff, transparent: true, opacity: 0.5 });
+const starsMaterial = new THREE.PointsMaterial({ size: 0.5, color: 0xffffff, transparent: true, opacity: 0.5 });
 const starsMesh = new THREE.Points(starsGeometry, starsMaterial);
 scene.add(starsMesh);
 
@@ -670,8 +670,6 @@ window.switchPhenomenon = (type) => {
 };
 
 // Orchestrator
-let targetCameraPos = new THREE.Vector3(0, 0, 10);
-
 function goToStep(index) {
     if(index < 0 || index >= tourSteps.length) return;
     currentStepIndex = index;
@@ -683,9 +681,11 @@ function goToStep(index) {
 
     window.switchPhenomenon(step.id);
 
-    // Set target camera position for interpolation
+    // Set camera position instantly for the new step to allow free observation
     if(step.cameraPos) {
-        targetCameraPos.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
+        camera.position.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
+        controls.target.set(0,0,0);
+        controls.update();
     }
 }
 
@@ -703,8 +703,11 @@ btnPlayPause.addEventListener('click', () => {
 
 btnResetCam.addEventListener('click', () => {
     const step = tourSteps[currentStepIndex];
-    if(step.cameraPos) targetCameraPos.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
-    controls.reset();
+    if(step.cameraPos) {
+        camera.position.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
+        controls.target.set(0,0,0);
+        controls.update();
+    }
 });
 
 btnBuildAtom.addEventListener('click', () => {
@@ -934,9 +937,6 @@ function animate() {
             orbiter.trail.geometry.setDrawRange(0, orbiter.trailPositions.length);
         }
     });
-
-    // Smooth camera interpolation
-    camera.position.lerp(targetCameraPos, 1.5 * dt);
 
     controls.update();
     renderer.render(scene, camera);
