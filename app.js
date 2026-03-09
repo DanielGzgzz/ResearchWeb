@@ -409,15 +409,21 @@ function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
     const phi = Math.PI * (3 - Math.sqrt(5));  // golden angle
 
     for(let i=0; i<totalNucleons; i++) {
-        const y = 1 - (i / (totalNucleons - 1)) * 2;  // y goes from 1 to -1
-        const radius = Math.sqrt(1 - y * y);  // radius at y
-        const theta = phi * i;  // golden angle increment
+        let x = 0, y = 0, z = 0;
+        let packRadius = 0;
 
-        const x = Math.cos(theta) * radius;
-        const z = Math.sin(theta) * radius;
+        if (totalNucleons > 1) {
+            y = 1 - (i / (totalNucleons - 1)) * 2;  // y goes from 1 to -1
+            const radius = Math.sqrt(1 - y * y);  // radius at y
+            const theta = phi * i;  // golden angle increment
 
-        // Scale distance based on total nucleons to pack them tightly
-        const packRadius = Math.cbrt(totalNucleons) * baseScale * 1.5;
+            x = Math.cos(theta) * radius;
+            z = Math.sin(theta) * radius;
+
+            // Scale distance based on total nucleons to pack them tightly
+            packRadius = Math.cbrt(totalNucleons) * baseScale * 1.5;
+        }
+
         const isNeutron = (nCount < numNeutrons && (pCount >= numProtons || i % 2 === 0));
 
         if (isNeutron) nCount++; else pCount++;
@@ -464,18 +470,14 @@ function clearScene() {
 
     allObjects.forEach(obj => {
         scene.remove(obj);
-        if (obj.isGroup) {
-            obj.children.forEach(child => {
-                if (child.geometry) child.geometry.dispose();
-                if (child.material) {
-                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                    else child.material.dispose();
-                }
-            });
-        } else {
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) obj.material.dispose();
-        }
+        // Recursively dispose of all deeply nested geometries and materials (like ArrowHelpers)
+        obj.traverse(child => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                else child.material.dispose();
+            }
+        });
     });
     currentMeshes = [];
     currentOrbiters = [];
@@ -830,7 +832,6 @@ function animate() {
             // Annihilation Trigger (Check distance between origin and particle)
             if(!annihilated && Math.abs(mesh.position.x) < 0.5) {
                 annihilated = true;
-                hudTopology.textContent = 'PURE_GAMMA_RADIATION';
                 clearScene();
                 // Spawn pure gamma radiation replacing the loop
                 renderPhotonWave(60, 4, [0,0,0], 'x', false);
