@@ -377,9 +377,10 @@ function addFieldVectors(mesh, curveType, params) {
 
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
+    // Use 4 radial segments to create a rectangular cross-section for the "rect" blocky look
     // Mobius strip twist requires 4PI to close smoothly, so we use false for closed
     // and let the twist material logic handle the 720 degree double loop
-    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 16, false);
+    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 4, false);
     // 720 degree twist = 4PI / 2PI = 2 full twists
     const material = createGeonMaterial(isPositron ? -2.0 : 2.0, false, false);
     const mesh = new THREE.Mesh(geometry, material);
@@ -423,8 +424,9 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     // The proton is a (3,2) torus knot. We map its geometry and apply twisting.
     const curve = new TrefoilCurve(radius, tubeRadius);
+    // Use 4 radial segments to create a rectangular cross-section for the "rect" blocky look
     // 3 twists for the 3 loops of the trefoil
-    const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 20, true);
+    const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 4, true);
     const material = createGeonMaterial(3.0, isNeutral, !isNeutral); // uTwistFactor = 3.0 matches 3 twists
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
@@ -1119,7 +1121,7 @@ function animate() {
                     }
                 }
 
-                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 20, hTube, 8, false);
+                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 20, hTube, 4, false);
                 const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 0 } };
@@ -1127,7 +1129,7 @@ function animate() {
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 20, hTube, 8, false);
+                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 20, hTube, 4, false);
                 const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: 0 } };
