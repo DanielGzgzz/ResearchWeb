@@ -178,8 +178,10 @@ varying vec3 vNormal;
 
 void main() {
   float theta = vUv.y * 2.0 * 3.14159;
-  float phase1 = sin(theta + vUv.x * uTwistFactor * 3.14159 * 2.0); // E field axis
-  float phase2 = cos(theta + vUv.x * uTwistFactor * 3.14159 * 2.0); // B field axis
+  // Propagate wave along the length of the tube (vUv.x) via uTime to simulate light speed
+  float propagation = uTime * 20.0;
+  float phase1 = sin(theta + vUv.x * uTwistFactor * 3.14159 * 2.0 - propagation); // E field axis
+  float phase2 = cos(theta + vUv.x * uTwistFactor * 3.14159 * 2.0 - propagation); // B field axis
 
   vec3 eColor = mix(colorEMinus, colorEPlus, (phase1 + 1.0) / 2.0);
   vec3 bColor = mix(colorBMinus, colorBPlus, (phase2 + 1.0) / 2.0);
@@ -344,7 +346,7 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     mesh.position.set(...pos);
     mesh.userData = {
         type: isPositron ? 'positron' : 'electron',
-        rotationSpeed: { x: 0.2, y: 0.5, z: 0 },
+        rotationSpeed: { x: 0, y: 0, z: 0 }, // Removed rigid spin; mechanics are now strictly light propagation
         baseRadius: radius
     };
 
@@ -791,19 +793,20 @@ window.switchPhenomenon = (type) => {
 
     } else if (type === 'quasar') {
         // Central Black Hole / Super-Neutron
-        const coreGeom = new THREE.SphereGeometry(5, 32, 32);
+        const qScale = SCALE.BOHR_RADIUS * 2; // Making the quasar visually scaled relative to atomic scale
+        const coreGeom = new THREE.SphereGeometry(qScale * 0.05, 32, 32);
         const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.85 }); // Slightly transparent to see crushing core
         const bh = new THREE.Mesh(coreGeom, coreMat);
         scene.add(bh);
         currentMeshes.push(bh);
 
         // Show a crushed nuclear lattice inside the event horizon
-        const crushedCore = packNucleus(20, 20, 0.1);
+        const crushedCore = packNucleus(20, 20, SCALE.PROTON_RADIUS * 0.1);
         crushedCore.scale.set(0.5, 0.5, 0.5); // Pack them very tightly
         // Note: packNucleus already adds to scene and currentMeshes.
 
         // Accretion disk
-        const diskGeom = new THREE.RingGeometry(8, 25, 64);
+        const diskGeom = new THREE.RingGeometry(qScale * 0.08, qScale * 0.25, 64);
         const diskMat = new THREE.MeshBasicMaterial({
             color: 0xffaa00,
             side: THREE.DoubleSide,
@@ -844,6 +847,24 @@ window.switchPhenomenon = (type) => {
 
         // Set an attractive charge in the core equal to Z
         scene.userData.coreCharge = z;
+    } else if (type === 'scattering') {
+        // Target Electron (Stationary but spinning its internal field)
+        const eRadius = SCALE.ELECTRON_RADIUS;
+        const eTube = SCALE.ELECTRON_TUBE;
+        const targetElectron = renderElectron(eRadius, eTube, [0, 0, 0]);
+
+        // Incoming Linear Photon (Gamma ray)
+        const photonStart = [-eRadius * 5, eRadius * 0.5, 0];
+        const photon = renderLinearPhoton(eRadius, eRadius * 0.2, photonStart);
+
+        // Setup scattering kinematics
+        photon.userData.isScatteringPhoton = true;
+        photon.userData.velocity = [eRadius * 2, 0, 0]; // Fast moving photon
+        photon.userData.target = targetElectron;
+        photon.userData.scattered = false;
+
+        targetElectron.userData.velocity = [0, 0, 0];
+        targetElectron.userData.isScatteredTarget = true;
     }
 
     // Set wireframe state on freshly created materials
@@ -1016,15 +1037,70 @@ function animate() {
         }
 
         // Positronium Orbit and Annihilation Event
+        if(mesh.userData.isScatteringPhoton && !mesh.userData.scattered) {
+            // Move photon
+            mesh.position.x += mesh.userData.velocity[0] * dt;
+            mesh.position.y += mesh.userData.velocity[1] * dt;
+            mesh.position.z += mesh.userData.velocity[2] * dt;
+
+            // Check collision with target electron
+            const target = mesh.userData.target;
+            const dist = mesh.position.distanceTo(target.position);
+
+            if(dist < SCALE.ELECTRON_RADIUS * 1.5) {
+                mesh.userData.scattered = true;
+
+                // Compton Scattering Kinematics
+                // Photon loses energy (longer wavelength, slower perceived speed) and deflects
+                mesh.userData.velocity = [
+                    mesh.userData.velocity[0] * 0.5,
+                    SCALE.ELECTRON_RADIUS * 1.5,
+                    0
+                ];
+
+                // Electron absorbs momentum and recoils
+                target.userData.velocity = [
+                    SCALE.ELECTRON_RADIUS * 1.0,
+                    -SCALE.ELECTRON_RADIUS * 0.5,
+                    0
+                ];
+
+                // Rotate the linear photon mesh to match its new trajectory
+                const angle = Math.atan2(mesh.userData.velocity[1], mesh.userData.velocity[0]);
+                mesh.rotation.z = angle;
+            }
+        }
+
+        if(mesh.userData.isScatteredTarget && mesh.userData.velocity) {
+            mesh.position.x += mesh.userData.velocity[0] * dt;
+            mesh.position.y += mesh.userData.velocity[1] * dt;
+            mesh.position.z += mesh.userData.velocity[2] * dt;
+        }
+
         if(mesh.userData.isPositronium && !annihilated) {
-            mesh.userData.angle += dt * 0.5;
-            mesh.userData.orbitRadius -= dt * SCALE.ELECTRON_RADIUS * 2.0; // In-spiral
+            const angularVelocity = 0.5;
+            const inwardVelocity = SCALE.ELECTRON_RADIUS * 2.0;
+
+            const nextAngle = mesh.userData.angle + dt * angularVelocity;
+            const nextRadius = mesh.userData.orbitRadius - dt * inwardVelocity;
+
+            // Calculate next position to look at
+            const nextPos = new THREE.Vector3(
+                Math.cos(nextAngle) * nextRadius,
+                0,
+                Math.sin(nextAngle) * nextRadius
+            );
+
+            mesh.userData.angle = nextAngle;
+            mesh.userData.orbitRadius = nextRadius;
 
             mesh.position.x = Math.cos(mesh.userData.angle) * mesh.userData.orbitRadius;
             mesh.position.z = Math.sin(mesh.userData.angle) * mesh.userData.orbitRadius;
 
-            // Align orientation of the torus
-            mesh.rotation.y = -mesh.userData.angle;
+            // Align orientation of the geometry precisely along the velocity vector
+            mesh.lookAt(nextPos);
+            // Stand the loops up so they face each other radially while traveling tangentially
+            mesh.rotateX(Math.PI / 2);
 
             // Annihilation Trigger
             if(mesh.userData.orbitRadius < SCALE.ELECTRON_RADIUS * 2) {
@@ -1038,10 +1114,12 @@ function animate() {
                 const jetLength = SCALE.ELECTRON_RADIUS * 10;
                 class LinearJetCurve extends THREE.Curve {
                     getPoint(t, optionalTarget = new THREE.Vector3()) {
-                        const x = t * jetLength - (jetLength / 2);
+                        // Jet propogates along Z axis to conserve the total angular momentum and energy vectors
+                        // from the XY plane collision
+                        const z = t * jetLength - (jetLength / 2);
                         const wavePhase = t * Math.PI * 20;
-                        const y = Math.cos(wavePhase) * hRadius * 0.1; // tight high freq wave
-                        const z = Math.sin(wavePhase) * hRadius * 0.1;
+                        const x = Math.cos(wavePhase) * hRadius * 0.1; // tight high freq wave
+                        const y = Math.sin(wavePhase) * hRadius * 0.1;
                         return optionalTarget.set(x, y, z);
                     }
                 }
@@ -1049,7 +1127,7 @@ function animate() {
                 const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 8, false);
                 const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
-                mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 5.0, y: 0, z: 0 } };
+                mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
                 mesh1.position.set(0, 0, 0);
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
@@ -1057,7 +1135,7 @@ function animate() {
                 const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 8, false);
                 const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
-                mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: -5.0, y: 0, z: 0 } };
+                mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
                 mesh2.position.set(0, 0, 0);
                 scene.add(mesh2);
                 currentMeshes.push(mesh2);
@@ -1066,7 +1144,7 @@ function animate() {
 
         // Handle unspooled photon jets
         if (mesh.userData.isPhotonJet) {
-            mesh.position.x += mesh.userData.dir * dt * (SCALE.ELECTRON_RADIUS * 10);
+            mesh.position.z += mesh.userData.dir * dt * (SCALE.ELECTRON_RADIUS * 10);
         }
 
         // Photon Wave propagation
@@ -1092,7 +1170,19 @@ function animate() {
             for(let i=0; i<100; i++) {
                 let t = i/100 * mesh.userData.length;
                 let wavePhase = (t - mesh.userData.timeOffset) * (1.0 / SIM_STATE.lightWavelength);
-                let wave = Math.sin(wavePhase) * mesh.userData.amplitude;
+
+                // Inverse Square Expansion: Wave amplitude decreases as 1/r (Intensity ~ 1/r^2)
+                // Spatial expansion (spherical dilation) is simulated by widening the wave footprint proportionally to distance (t) and wavelength.
+                let attenuation = 1.0;
+                if (t > 0) {
+                    attenuation = 1.0 / (1.0 + t * 0.1);
+                }
+
+                // Low energy (longer wavelength) expands faster radially
+                let radialExpansion = (SIM_STATE.lightWavelength * 0.5) * t * 0.05;
+                let currentAmp = (mesh.userData.amplitude + radialExpansion) * attenuation;
+
+                let wave = Math.sin(wavePhase) * currentAmp;
 
                 let py = Math.cos(polRad) * wave;
                 let pz = Math.sin(polRad) * wave;
@@ -1211,9 +1301,6 @@ function animate() {
             // to represent the helical elongation (inertia) defined in the theory.
             orbiter.mesh.lookAt(nextPos);
         }
-
-        // Apply intrinsic Z-spin while maintaining forward orientation
-        orbiter.mesh.rotateZ(orbiter.mesh.userData.rotationSpeed.z * time * 20); // Internal spin
 
         if(orbiter.mesh.material && orbiter.mesh.material.uniforms) {
             orbiter.mesh.material.uniforms.uTime.value = time;
