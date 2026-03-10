@@ -35,39 +35,39 @@ const tourSteps = [
             { label: 'Structural Radius', expr: 'r = \\frac{\\hbar}{2m_e c} \\approx 1.93 \\times 10^{-13} \\text{ m}' },
             { label: 'Casimir Confinement Pressure', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2} \\equiv \\frac{m_e c^2}{r}' },
         ],
-        features: ['4π (720°) twisted Möbius double-loop', 'Continuous Green (+E), Red (-E), Purple (+B), Yellow (-B) mappings', 'Explains Dirac g=2 anomaly geometrically'],
-        cameraPos: { x: 0, y: 0, z: 10 },
+        features: ['4π (720°) twisted Möbius double-loop', 'Macroscopically massive boundary (193 fm)', 'Explains Dirac g=2 anomaly geometrically'],
+        cameraPos: { x: 0, y: 0, z: 12 },
     },
     {
         id: 'proton',
         title: '3. Hadronic Architecture: The Proton',
-        desc: 'Nucleons require a 3D architecture to distribute angular momentum without unspooling massive inertia. The geometric mechanical replacement for the strong force is 178,700 N of inward vacuum pressure compressing the Trefoil.',
+        desc: 'Nucleons require a 3D architecture to distribute angular momentum. Compressed by 178,700 N of vacuum pressure, the resulting Trefoil knot is physically ~230x smaller than the electron orbit.',
         math: [
             { label: 'Resting Radius', expr: 'R_p = \\frac{4\\hbar}{m_p c} \\approx 0.8412 \\text{ fm}' },
             { label: 'Inward Vacuum Pressure', expr: 'F_{vac} = \\frac{4\\hbar c}{R_p^2}' },
         ],
-        features: ['(3,2)-Torus knot (Trefoil knot)', 'Three continuous spatial lobes (Quark replacement)', 'Integrates to +1e via two outward twists (+2/3e) and one inward (-1/3e)'],
-        cameraPos: { x: 0, y: 0, z: 12 },
+        features: ['(3,2)-Torus knot (Trefoil knot)', 'Sub-femtometer density (0.84 fm)', 'Integrates to +1e via two outward twists (+2/3e) and one inward (-1/3e)'],
+        cameraPos: { x: 0, y: 0, z: 1.5 },
     },
     {
         id: 'hydrogen',
         title: '4. The Hydrogen Atom (Protium)',
-        desc: 'A single proton (Trefoil knot) anchoring an electron (Möbius loop) in a geometric orbit via interlocking Casimir shadow fields. The electron structure does not scale; it remains a point-like topology orbiting the macroscopic well.',
+        desc: 'A tiny, dense proton anchoring an enormous electron in a geometric orbit. Notice the extreme scale discrepancy: the 0.84 fm proton core is dwarfed by the orbiting 193 fm electron.',
         math: [
             { label: 'Gravitational Shadowing', expr: 'G = \\frac{P_{vac}\\sigma^{2}}{4\\pi m_{p}^{2}}' },
         ],
-        features: ['Central dense Trefoil knot (Proton)', '1 constant-scale orbiting Möbius loop (Electron)', 'Stable atomic equilibrium'],
-        cameraPos: { x: 0, y: 0, z: 15 },
+        features: ['Central dense Trefoil knot (Proton)', '1 massive-scale orbiting Möbius loop (Electron)', 'Stable atomic equilibrium'],
+        cameraPos: { x: 0, y: 0, z: 25 },
     },
     {
         id: 'deuterium',
         title: '5. Deuterium Atom (Heavy Hydrogen)',
-        desc: 'A proton and a neutron bound closely together via Strong Force geometric hard-stop repulsion, sharing a single orbiting electron. The neutron is structurally identical but phase-shifted to produce a neutral macro-charge.',
+        desc: 'A proton and neutron tightly bound via intersecting geometric repulsions, forming an FCC lattice core. The neutron is structurally identical but phase-shifted. Each hadron possesses an independent spatial orientation.',
         math: [
             { label: 'Nuclear Boundary Repulsion', expr: 'k \\approx 212,600 \\text{ N/fm}' },
         ],
-        features: ['1 Proton / 1 Neutron dual-core', '1 orbiting Electron', 'Stable isotope'],
-        cameraPos: { x: 0, y: 0, z: 16 },
+        features: ['1 Proton / 1 Neutron dual-core', 'Independent 3D hadron orientations', 'Stable isotope'],
+        cameraPos: { x: 0, y: 0, z: 25 },
     },
     {
         id: 'water',
@@ -86,8 +86,8 @@ const tourSteps = [
         math: [
             { label: 'Relativistic Absorption Shift', expr: '\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}' }
         ],
-        features: ['79 Protons / 118 Neutrons tightly packed core', '79 individually orbiting constant-scale electrons', 'High v = 0.58c velocities in inner shells'],
-        cameraPos: { x: 0, y: 0, z: 60 },
+        features: ['79 Protons / 118 Neutrons tightly packed core', '79 individually orbiting massive-scale electrons', 'High v = 0.58c velocities in inner shells'],
+        cameraPos: { x: 0, y: 0, z: 150 },
     },
     {
         id: 'annihilation',
@@ -97,7 +97,7 @@ const tourSteps = [
             { label: 'Annihilation Threshold', expr: 'E_{crit} = 1.02199 \\text{ MeV}' },
         ],
         features: ['Electron (Twist +2)', 'Positron (Twist -2)', 'Unspools into pure linear photons upon impact'],
-        cameraPos: { x: 0, y: 0, z: 25 },
+        cameraPos: { x: 0, y: 0, z: 50 },
     },
     {
         id: 'gravity',
@@ -117,7 +117,7 @@ const tourSteps = [
             { label: 'Nuclear Core Packing Volume', expr: 'V = \\frac{4}{3}\\pi (R_p \\sqrt[3]{A})^3' }
         ],
         features: ['Interactive Core Builder', 'Dynamic Electron Shell Generator', 'Real-time Superposition Engine'],
-        cameraPos: { x: 0, y: 0, z: 40 },
+        cameraPos: { x: 0, y: 0, z: 80 },
     }
 ];
 
@@ -362,9 +362,9 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
 
 // Function to generate an electron that physically orbits a central point
 function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRotation) {
-    // Keep electron scale constant (same as standard electron model)
-    const eRadius = 0.5;
-    const eTube = 0.1;
+    // Enforce accurate physical scales. Electron is ~230x larger than a proton.
+    const eRadius = 4.0;
+    const eTube = 0.4;
 
     const electron = renderElectron(eRadius, eTube, [0,0,0]);
     // Remove from main static list so it doesn't get standard static rotation mixed up
@@ -449,6 +449,13 @@ function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
         const cz = coords[i][2] * spacing;
 
         const nucleon = renderProton(pRadius, pTube, [cx, cy, cz], isNeutron);
+
+        // Give each hadron a unique 3D spatial orientation within the lattice
+        nucleon.rotation.set(
+            Math.random() * Math.PI * 2,
+            Math.random() * Math.PI * 2,
+            Math.random() * Math.PI * 2
+        );
 
         // Remove from global scene & array and attach to group
         scene.remove(nucleon);
@@ -609,62 +616,62 @@ window.switchPhenomenon = (type) => {
     if (type === 'vacuum') {
         // Just the starry background
     } else if (type === 'electron') {
-        renderElectron(2, 0.3);
+        renderElectron(4.0, 0.4);
     } else if (type === 'proton') {
-        renderProton(2, 0.4);
+        renderProton(0.2, 0.05);
     } else if (type === 'hydrogen') {
-        packNucleus(1, 0, 0.6); // 1p, 0n
-        addOrbitingElectron(new THREE.Vector3(0,0,0), 5, 2.0, [0, 0, 0]);
+        packNucleus(1, 0, 0.1);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 2.0, [0, 0, 0]);
     } else if (type === 'deuterium') {
-        packNucleus(1, 1, 0.6); // 1p, 1n
-        addOrbitingElectron(new THREE.Vector3(0,0,0), 6, 1.8, [Math.PI/4, 0, 0]);
+        packNucleus(1, 1, 0.1);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 1.8, [Math.PI/4, 0, 0]);
     } else if (type === 'water') {
         // Central Oxygen 16 (8p, 8n)
-        packNucleus(8, 8, 0.4);
+        packNucleus(8, 8, 0.1);
         // Hydrogen Bonds (1p each at 104.5 degrees approx)
-        const h1 = packNucleus(1, 0, 0.4);
-        h1.position.set(5, -3, 0);
-        const h2 = packNucleus(1, 0, 0.4);
-        h2.position.set(-5, -3, 0);
+        const h1 = packNucleus(1, 0, 0.1);
+        h1.position.set(4, -3, 0);
+        const h2 = packNucleus(1, 0, 0.1);
+        h2.position.set(-4, -3, 0);
 
         // 10 Electrons total
-        for(let i=0; i<2; i++) addOrbitingElectron(new THREE.Vector3(0,0,0), 3, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Inner O shell
-        for(let i=0; i<8; i++) addOrbitingElectron(new THREE.Vector3(0,-1,0), 8, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Outer sharing shell
+        for(let i=0; i<2; i++) addOrbitingElectron(new THREE.Vector3(0,0,0), 10, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Inner O shell
+        for(let i=0; i<8; i++) addOrbitingElectron(new THREE.Vector3(0,-1,0), 20, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Outer sharing shell
 
     } else if (type === 'gold') {
-        const core = packNucleus(79, 118, 0.2);
+        const core = packNucleus(79, 118, 0.1);
         // Emphasizing the relativistic v = 0.58c speed of the inner 1s shell.
         // Speeds decay outward (v = Z*alpha*c / n).
         const shells = [
-            { n: 2,  r: 3,  s: 5.8 },  // 1s shell (Highly relativistic)
-            { n: 8,  r: 5,  s: 2.9 },  // 2s, 2p
-            { n: 18, r: 8,  s: 1.9 },  // 3s, 3p, 3d
-            { n: 32, r: 12, s: 1.45 }, // 4s, 4p, 4d, 4f
-            { n: 18, r: 17, s: 1.16 }, // 5s, 5p, 5d
-            { n: 1,  r: 23, s: 0.96 }  // 6s (Valence)
+            { n: 2,  r: 12,  s: 5.8 },  // 1s shell (Highly relativistic)
+            { n: 8,  r: 22,  s: 2.9 },  // 2s, 2p
+            { n: 18, r: 35,  s: 1.9 },  // 3s, 3p, 3d
+            { n: 32, r: 50, s: 1.45 }, // 4s, 4p, 4d, 4f
+            { n: 18, r: 68, s: 1.16 }, // 5s, 5p, 5d
+            { n: 1,  r: 85, s: 0.96 }  // 6s (Valence)
         ];
         shells.forEach(shell => {
             for(let i=0; i<shell.n; i++) {
-                addOrbitingElectron(new THREE.Vector3(0,0,0), shell.r + (Math.random()-0.5), shell.s + (Math.random()*0.2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
+                addOrbitingElectron(new THREE.Vector3(0,0,0), shell.r + (Math.random()-0.5)*3, shell.s + (Math.random()*0.2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
             }
         });
 
     } else if (type === 'annihilation') {
-        renderElectron(2, 0.3, [-5, 0, 0]);
-        renderElectron(2, 0.3, [5, 0, 0], true); // Positron
-        currentMeshes[0].userData.velocity = [0.03, 0, 0];
-        currentMeshes[1].userData.velocity = [-0.03, 0, 0];
+        renderElectron(4.0, 0.4, [-10, 0, 0]);
+        renderElectron(4.0, 0.4, [10, 0, 0], true); // Positron
+        currentMeshes[0].userData.velocity = [0.08, 0, 0];
+        currentMeshes[1].userData.velocity = [-0.08, 0, 0];
 
     } else if (type === 'gravity') {
         // Earth and Moon analog
         const earth = packNucleus(30, 30, 0.3);
         earth.position.set(0,0,0);
 
-        const moon = packNucleus(10, 10, 0.2);
-        moon.position.set(20, 0, 0);
+        const moon = packNucleus(10, 10, 0.3);
+        moon.position.set(30, 0, 0);
 
         // Tidally locked electron orbiting moon
-        addOrbitingElectron(new THREE.Vector3(20,0,0), 4, 1.0, [0,0,0]);
+        addOrbitingElectron(new THREE.Vector3(30,0,0), 12, 1.0, [0,0,0]);
 
     } else if (type === 'custom') {
         // Read custom builder values
@@ -672,20 +679,20 @@ window.switchPhenomenon = (type) => {
         const n = parseInt(inputN.value) || 0;
         const e = parseInt(inputE.value) || 1;
 
-        packNucleus(z, n, 0.3);
+        packNucleus(z, n, 0.1);
 
         // Very basic shell distributor for custom mode
         let ePlaced = 0;
-        let shellR = 4;
+        let shellR = 15;
         while(ePlaced < e) {
-            let capacity = 2 * Math.pow((shellR/4), 2); // pseudo-capacity
+            let capacity = 2 * Math.pow((shellR/15), 2); // pseudo-capacity
             if(capacity < 2) capacity = 2;
             let toPlace = Math.min(e - ePlaced, Math.floor(capacity));
             for(let i=0; i<toPlace; i++) {
-                 addOrbitingElectron(new THREE.Vector3(0,0,0), shellR, 3.0 / (shellR/2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
+                 addOrbitingElectron(new THREE.Vector3(0,0,0), shellR, 3.0 / (shellR/10), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
             }
             ePlaced += toPlace;
-            shellR += 3;
+            shellR += 15;
         }
     }
 
