@@ -397,7 +397,7 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
     currentOrbiters.push(orbitObj);
 }
 
-// Helper to construct densely packed atomic nuclei
+// Helper to construct densely packed atomic nuclei (FCC Lattice approximation)
 function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
     const nucleusGroup = new THREE.Group();
     const totalNucleons = numProtons + numNeutrons;
@@ -405,32 +405,50 @@ function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
     let pCount = 0;
     let nCount = 0;
 
-    // Fibonaci sphere packing approximation for the core
-    const phi = Math.PI * (3 - Math.sqrt(5));  // golden angle
+    const spacing = baseScale * 2.2;
+    let shell = 0;
+    let placed = 0;
+
+    // Generate Face-Centered Cubic (FCC) lattice coordinates
+    const coords = [];
+    if(totalNucleons === 1) {
+        coords.push([0,0,0]);
+    } else {
+        coords.push([0,0,0]); // Center
+        while(coords.length < totalNucleons) {
+            shell++;
+            for(let x = -shell; x <= shell; x++) {
+                for(let y = -shell; y <= shell; y++) {
+                    for(let z = -shell; z <= shell; z++) {
+                        // FCC Condition: x+y+z must be even
+                        if (Math.abs(x) + Math.abs(y) + Math.abs(z) <= shell * 2 && (Math.abs(x)+Math.abs(y)+Math.abs(z)) % 2 === 0) {
+                            // Check if already exists (simplistic check)
+                            const exists = coords.some(c => c[0]===x && c[1]===y && c[2]===z);
+                            if(!exists && coords.length < totalNucleons) {
+                                coords.push([x,y,z]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort coords by distance to origin to pack from center outwards
+    coords.sort((a,b) => (a[0]**2 + a[1]**2 + a[2]**2) - (b[0]**2 + b[1]**2 + b[2]**2));
 
     for(let i=0; i<totalNucleons; i++) {
-        let x = 0, y = 0, z = 0;
-        let packRadius = 0;
-
-        if (totalNucleons > 1) {
-            y = 1 - (i / (totalNucleons - 1)) * 2;  // y goes from 1 to -1
-            const radius = Math.sqrt(1 - y * y);  // radius at y
-            const theta = phi * i;  // golden angle increment
-
-            x = Math.cos(theta) * radius;
-            z = Math.sin(theta) * radius;
-
-            // Scale distance based on total nucleons to pack them tightly
-            packRadius = Math.cbrt(totalNucleons) * baseScale * 1.5;
-        }
-
         const isNeutron = (nCount < numNeutrons && (pCount >= numProtons || i % 2 === 0));
-
         if (isNeutron) nCount++; else pCount++;
 
         const pRadius = baseScale;
         const pTube = baseScale * 0.2;
-        const nucleon = renderProton(pRadius, pTube, [x*packRadius, y*packRadius, z*packRadius], isNeutron);
+
+        const cx = coords[i][0] * spacing;
+        const cy = coords[i][1] * spacing;
+        const cz = coords[i][2] * spacing;
+
+        const nucleon = renderProton(pRadius, pTube, [cx, cy, cz], isNeutron);
 
         // Remove from global scene & array and attach to group
         scene.remove(nucleon);
@@ -615,9 +633,15 @@ window.switchPhenomenon = (type) => {
 
     } else if (type === 'gold') {
         const core = packNucleus(79, 118, 0.2);
+        // Emphasizing the relativistic v = 0.58c speed of the inner 1s shell.
+        // Speeds decay outward (v = Z*alpha*c / n).
         const shells = [
-            { n: 2, r: 4, s: 3.0 }, { n: 8, r: 6, s: 2.5 }, { n: 18, r: 9, s: 2.0 },
-            { n: 32, r: 13, s: 1.5 }, { n: 18, r: 18, s: 1.0 }, { n: 1, r: 24, s: 0.5 }
+            { n: 2,  r: 3,  s: 5.8 },  // 1s shell (Highly relativistic)
+            { n: 8,  r: 5,  s: 2.9 },  // 2s, 2p
+            { n: 18, r: 8,  s: 1.9 },  // 3s, 3p, 3d
+            { n: 32, r: 12, s: 1.45 }, // 4s, 4p, 4d, 4f
+            { n: 18, r: 17, s: 1.16 }, // 5s, 5p, 5d
+            { n: 1,  r: 23, s: 0.96 }  // 6s (Valence)
         ];
         shells.forEach(shell => {
             for(let i=0; i<shell.n; i++) {
@@ -898,23 +922,32 @@ function animate() {
 
     // Process Orbiting Electrons
     currentOrbiters.forEach(orbiter => {
-        orbiter.angle += orbiter.speed * dt;
+        // Calculate next position to determine velocity vector
+        const nextAngle = orbiter.angle + (orbiter.speed * dt);
 
-        // Calculate base orbit on XZ plane
-        let x = Math.cos(orbiter.angle) * orbiter.radius;
-        let z = Math.sin(orbiter.angle) * orbiter.radius;
-        let y = 0;
+        let nx = Math.cos(nextAngle) * orbiter.radius;
+        let nz = Math.sin(nextAngle) * orbiter.radius;
 
-        // Apply 3D plane rotation
-        let vec = new THREE.Vector3(x, y, z);
-        vec.applyEuler(new THREE.Euler(orbiter.planeRotX, orbiter.planeRotY, orbiter.planeRotZ));
+        let currentVec = new THREE.Vector3(Math.cos(orbiter.angle) * orbiter.radius, 0, Math.sin(orbiter.angle) * orbiter.radius);
+        let nextVec = new THREE.Vector3(nx, 0, nz);
 
-        orbiter.mesh.position.copy(orbiter.center).add(vec);
+        const eulerRot = new THREE.Euler(orbiter.planeRotX, orbiter.planeRotY, orbiter.planeRotZ);
+        currentVec.applyEuler(eulerRot);
+        nextVec.applyEuler(eulerRot);
 
-        // Intrinsic Rotation & Shaders & Vectors
-        orbiter.mesh.rotation.x += orbiter.mesh.userData.rotationSpeed.x * dt;
-        orbiter.mesh.rotation.y += orbiter.mesh.userData.rotationSpeed.y * dt;
-        orbiter.mesh.rotation.z += orbiter.mesh.userData.rotationSpeed.z * dt;
+        const currentPos = orbiter.center.clone().add(currentVec);
+        const nextPos = orbiter.center.clone().add(nextVec);
+
+        // Move to current
+        orbiter.mesh.position.copy(currentPos);
+        orbiter.angle = nextAngle;
+
+        // Kinematics: The Möbius ring must orient its primary axis along its direction of travel (velocity vector)
+        // to represent the helical elongation (inertia) defined in the theory.
+        orbiter.mesh.lookAt(nextPos);
+
+        // Apply intrinsic Z-spin while maintaining forward orientation
+        orbiter.mesh.rotateZ(orbiter.mesh.userData.rotationSpeed.z * time * 20); // Internal spin
 
         if(orbiter.mesh.material && orbiter.mesh.material.uniforms) {
             orbiter.mesh.material.uniforms.uTime.value = time;
