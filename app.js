@@ -118,6 +118,16 @@ const tourSteps = [
         ],
         features: ['Interactive Core Builder', 'Dynamic Electron Shell Generator', 'Real-time Superposition Engine'],
         cameraPos: { x: 0, y: 0, z: 80 },
+    },
+    {
+        id: 'quasar',
+        title: '11. The Gezin Radius & Quasar Emission',
+        desc: 'A shadow cannot exceed 100% opacity. The absolute boundary of gravitational collapse occurs at the Gezin Radius. Mass exceeding this limit crushes into a "Super-Neutron" and phase-annihilates, violently ejecting continuous gamma radiation jets (Quasars).',
+        math: [
+            { label: 'The Gezin Radius', expr: 'R_{gezin} = R_p \\sqrt[3]{\\frac{M}{m_p}}' }
+        ],
+        features: ['Super-massive collapsed core', 'Matter accretion disk', 'Bi-polar linear gamma radiation jets (Quasar)'],
+        cameraPos: { x: 0, y: 20, z: 120 },
     }
 ];
 
@@ -371,12 +381,24 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
     currentMeshes.splice(currentMeshes.indexOf(electron), 1);
 
 
-    // Create Trail for Schrodinger Probability Cloud
+    // Create thick, additive probability cloud trail
+    // We use a large number of overlapping soft points to simulate dense probability distributions over time.
+    const trailMax = 300;
     const trailGeom = new THREE.BufferGeometry();
-    const trailPositions = new Float32Array(50 * 3); // 50 tail segments
+    const trailPositions = new Float32Array(trailMax * 3);
     trailGeom.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-    const trailMat = new THREE.LineBasicMaterial({ color: 0x4444ff, transparent: true, opacity: 0.4 });
-    const trail = new THREE.Line(trailGeom, trailMat);
+
+    // Additive blending creates bright dense spots where the electron frequently visits
+    const trailMat = new THREE.PointsMaterial({
+        color: 0x4488ff,
+        size: eRadius * 1.5, // Make it thick, enveloping the electron path
+        transparent: true,
+        opacity: 0.05, // Very low opacity per point so they build up slowly
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const trail = new THREE.Points(trailGeom, trailMat);
     trail.visible = SIM_STATE.trails;
     scene.add(trail);
 
@@ -392,7 +414,7 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
         planeRotZ: orbitPlaneRotation[2],
         trail: trail,
         trailPositions: [],
-        trailMax: 50
+        trailMax: trailMax
     };
     currentOrbiters.push(orbitObj);
 }
@@ -663,15 +685,62 @@ window.switchPhenomenon = (type) => {
         currentMeshes[1].userData.velocity = [-0.08, 0, 0];
 
     } else if (type === 'gravity') {
-        // Earth and Moon analog
-        const earth = packNucleus(30, 30, 0.3);
-        earth.position.set(0,0,0);
+        // Earth and Moon analog using simple macroscopic spheres
+        const earthGeom = new THREE.SphereGeometry(15, 32, 32);
+        const earthMat = new THREE.MeshPhongMaterial({ color: 0x1e3a8a, wireframe: SIM_STATE.wireframe });
+        const earth = new THREE.Mesh(earthGeom, earthMat);
+        scene.add(earth);
+        currentMeshes.push(earth);
 
-        const moon = packNucleus(10, 10, 0.3);
-        moon.position.set(30, 0, 0);
+        const moonGeom = new THREE.SphereGeometry(4, 32, 32);
+        const moonMat = new THREE.MeshPhongMaterial({ color: 0x64748b, wireframe: SIM_STATE.wireframe });
+        const moon = new THREE.Mesh(moonGeom, moonMat);
 
-        // Tidally locked electron orbiting moon
-        addOrbitingElectron(new THREE.Vector3(30,0,0), 12, 1.0, [0,0,0]);
+        // Setup tidal locking rotation group
+        const orbitGroup = new THREE.Group();
+        moon.position.set(40, 0, 0);
+
+        // Add a visible marker to the moon to easily see the tidal lock (face always points at earth)
+        const craterGeom = new THREE.SphereGeometry(1, 16, 16);
+        const craterMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+        const crater = new THREE.Mesh(craterGeom, craterMat);
+        crater.position.set(-4, 0, 0); // pointing inward toward Earth origin
+        moon.add(crater);
+
+        orbitGroup.add(moon);
+        orbitGroup.userData = { type: 'tidal_moon', rotationSpeed: { x: 0, y: 0.5, z: 0 } };
+        scene.add(orbitGroup);
+        currentMeshes.push(orbitGroup);
+
+    } else if (type === 'quasar') {
+        // Central Black Hole / Super-Neutron
+        const coreGeom = new THREE.SphereGeometry(5, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); // Perfectly black
+        const bh = new THREE.Mesh(coreGeom, coreMat);
+        scene.add(bh);
+        currentMeshes.push(bh);
+
+        // Accretion disk
+        const diskGeom = new THREE.RingGeometry(8, 25, 64);
+        const diskMat = new THREE.MeshBasicMaterial({
+            color: 0xffaa00,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.8,
+            wireframe: SIM_STATE.wireframe
+        });
+        const disk = new THREE.Mesh(diskGeom, diskMat);
+        disk.rotation.x = Math.PI / 2;
+        disk.userData = { rotationSpeed: { x: 0, y: 0, z: -1.5 } }; // Fast rotation
+        scene.add(disk);
+        currentMeshes.push(disk);
+
+        // Bi-polar Gamma Ray Jets (Quasar emission)
+        const jet1 = renderLinearPhoton(100, 2, [0, 5, 0]);
+        jet1.rotation.z = Math.PI / 2; // Point UP (Y axis)
+
+        const jet2 = renderLinearPhoton(100, 2, [0, -5, 0]);
+        jet2.rotation.z = -Math.PI / 2; // Point DOWN (-Y axis)
 
     } else if (type === 'custom') {
         // Read custom builder values
