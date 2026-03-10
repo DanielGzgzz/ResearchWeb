@@ -340,7 +340,8 @@ function addFieldVectors(mesh, curveType, params) {
 
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
-    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 16, true);
+    // Use radialSegments = 4 to enforce the "square tube" light brick geometry
+    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 4, true);
     const material = createGeonMaterial(isPositron ? -2.0 : 2.0);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
@@ -381,7 +382,8 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
 
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
-    const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 20, true);
+    // Use radialSegments = 4 to enforce the "square tube" light brick geometry
+    const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 4, true);
     const material = createGeonMaterial(3.0, isNeutral);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
@@ -1124,7 +1126,8 @@ function animate() {
                     }
                 }
 
-                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 8, false);
+                // Use radialSegments = 4 to enforce the "square tube" light brick geometry
+                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 4, false);
                 const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
@@ -1132,7 +1135,7 @@ function animate() {
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 8, false);
+                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 4, false);
                 const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
