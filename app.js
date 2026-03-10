@@ -178,9 +178,13 @@ varying vec3 vNormal;
 
 void main() {
   float theta = vUv.y * 2.0 * 3.14159;
-  float phase1 = sin(theta + vUv.x * uTwistFactor * 3.14159 * 2.0); // E field axis
-  float phase2 = cos(theta + vUv.x * uTwistFactor * 3.14159 * 2.0); // B field axis
+  // EM phase propagates along the topology at light-speed (uTime)
+  float phase1 = sin(theta + vUv.x * uTwistFactor * 3.14159 * 2.0 - uTime * 10.0); // E field axis
+  float phase2 = cos(theta + vUv.x * uTwistFactor * 3.14159 * 2.0 - uTime * 10.0); // B field axis
 
+  // Explicitly map colors to match the specific reference models:
+  // Purple/Blue for electrons, Red/Orange/Yellow for protons, Green/Blue for neutrons.
+  // We can pass these dynamically, but for now we mix based on the phase.
   vec3 eColor = mix(colorEMinus, colorEPlus, (phase1 + 1.0) / 2.0);
   vec3 bColor = mix(colorBMinus, colorBPlus, (phase2 + 1.0) / 2.0);
 
@@ -192,13 +196,24 @@ void main() {
 
   vec3 baseColor = eColor * weightE + bColor * weightB;
 
+  // Add discrete "cube" or "segment" voxelization for volumetric feel matching the reference
+  float segmentCount = 60.0;
+  float uQuantized = floor(vUv.x * segmentCount) / segmentCount;
+  float vQuantized = floor(vUv.y * 12.0) / 12.0;
+
   vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+  // Use non-quantized normal for lighting so it still looks round, or quantized if we want sharp cubes
   float diff = max(dot(vNormal, lightDir), 0.0);
   float ambient = 0.3;
   float glow = max(0.0, 1.0 - dot(vNormal, normalize(vec3(0, 0, 1)))) * 0.4;
 
+  // Draw black borders for segments
+  float edgeX = fract(vUv.x * segmentCount);
+  float edgeY = fract(vUv.y * 12.0);
+  float border = (edgeX < 0.05 || edgeX > 0.95 || edgeY < 0.05 || edgeY > 0.95) ? 0.3 : 1.0;
+
   vec3 finalColor = baseColor * (diff * 0.7 + ambient) + baseColor * glow;
-  gl_FragColor = vec4(finalColor, 1.0);
+  gl_FragColor = vec4(finalColor * border, 1.0);
 }`;
 
 // --- CURVES ---
@@ -210,9 +225,11 @@ class MobiusCurve extends THREE.Curve {
     }
     getPoint(t, optionalTarget = new THREE.Vector3()) {
         const u = t * Math.PI * 2;
+        // The electron is a Mobius strip in 3D: r(u) = < R*cos(u), R*sin(u), r*sin(u/2) >
+        // But the tube geometry twists the 2D cross section, we just need the central track
         const x = Math.cos(u) * this.radius;
         const y = Math.sin(u) * this.radius;
-        const z = Math.sin(u * 2) * this.tubeRadius * 1.5;
+        const z = Math.sin(u / 2) * this.tubeRadius * 2.0;
         return optionalTarget.set(x, y, z);
     }
 }
@@ -225,10 +242,12 @@ class TrefoilCurve extends THREE.Curve {
     }
     getPoint(t, optionalTarget = new THREE.Vector3()) {
         const u = t * Math.PI * 2;
+        // Trefoil knot parametrization (3,2)
         const x = Math.sin(u) + 2 * Math.sin(2 * u);
         const y = Math.cos(u) - 2 * Math.cos(2 * u);
         const z = -Math.sin(3 * u);
-        return optionalTarget.set(x * this.radius * 0.4, y * this.radius * 0.4, z * this.radius * 0.4);
+        // Tightly bound and compressed as per the reference images
+        return optionalTarget.set(x * this.radius * 0.35, y * this.radius * 0.35, z * this.radius * 0.35);
     }
 }
 
@@ -272,11 +291,31 @@ let currentOrbiters = []; // Track electrons that orbit the nucleus
 let time = 0;
 let annihilated = false;
 
-function createGeonMaterial(twistFactor, isNeutral=false) {
-    const ePlus = isNeutral ? '#557755' : '#00ff00';
-    const eMinus = isNeutral ? '#775555' : '#ff0000';
-    const bPlus = isNeutral ? '#555577' : '#800080';
-    const bMinus = isNeutral ? '#777755' : '#ffff00';
+function createGeonMaterial(twistFactor, isNeutral=false, isProton=false) {
+    // If it's a proton, make it red/orange/yellow as in the reference
+    // If it's an electron, make it purple/blue as in the reference
+    // If it's a neutron, make it green/blue/yellow as in the reference
+    let ePlus, eMinus, bPlus, bMinus;
+
+    if (isNeutral) {
+        // Neutron: Green/Yellow/Blue
+        ePlus = '#00a35c';
+        eMinus = '#3b82f6';
+        bPlus = '#a8e630';
+        bMinus = '#204060';
+    } else if (isProton) {
+        // Proton: Red/Orange/Yellow
+        ePlus = '#ff2000';
+        eMinus = '#ff9900';
+        bPlus = '#ffff00';
+        bMinus = '#800000';
+    } else {
+        // Electron: Purple/Blue
+        ePlus = '#9d00ff';
+        eMinus = '#3b82f6';
+        bPlus = '#6a0dad';
+        bMinus = '#2563eb';
+    }
 
     return new THREE.ShaderMaterial({
         vertexShader: particleVertexShader,
@@ -338,13 +377,17 @@ function addFieldVectors(mesh, curveType, params) {
 
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
-    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 16, true);
-    const material = createGeonMaterial(isPositron ? -2.0 : 2.0);
+    // Mobius strip twist requires 4PI to close smoothly, so we use false for closed
+    // and let the twist material logic handle the 720 degree double loop
+    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 16, false);
+    // 720 degree twist = 4PI / 2PI = 2 full twists
+    const material = createGeonMaterial(isPositron ? -2.0 : 2.0, false, false);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
     mesh.userData = {
         type: isPositron ? 'positron' : 'electron',
-        rotationSpeed: { x: 0.2, y: 0.5, z: 0 },
+        // Removed rigid body spin: EM phase prop handles motion
+        rotationSpeed: { x: 0, y: 0, z: 0 },
         baseRadius: radius
     };
 
@@ -378,12 +421,15 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
 }
 
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
+    // The proton is a (3,2) torus knot. We map its geometry and apply twisting.
     const curve = new TrefoilCurve(radius, tubeRadius);
+    // 3 twists for the 3 loops of the trefoil
     const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 20, true);
-    const material = createGeonMaterial(3.0, isNeutral);
+    const material = createGeonMaterial(3.0, isNeutral, !isNeutral); // uTwistFactor = 3.0 matches 3 twists
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
-    mesh.userData = { type: isNeutral ? 'neutron' : 'proton', rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
+    // Remove static rigid rotation for hadrons
+    mesh.userData = { type: isNeutral ? 'neutron' : 'proton', rotationSpeed: { x: 0, y: 0, z: 0 } };
 
     addFieldVectors(mesh, 'trefoil', { radius, tubeRadius });
     scene.add(mesh);
@@ -393,9 +439,9 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
 
 // Function to generate an electron that physically orbits a central point
 function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRotation, dynamic=false) {
-    // Enforce accurate physical scales. Electron is ~230x larger than a proton.
-    const eRadius = 4.0;
-    const eTube = 0.4;
+    // Enforce accurate physical scales.
+    const eRadius = SCALE.ELECTRON_RADIUS;
+    const eTube = SCALE.ELECTRON_TUBE;
 
     const electron = renderElectron(eRadius, eTube, [0,0,0]);
     // Remove from main static list so it doesn't get standard static rotation mixed up
@@ -677,28 +723,31 @@ window.switchPhenomenon = (type) => {
     if (type === 'vacuum') {
         // Just the starry background
     } else if (type === 'electron') {
-        renderElectron(4.0, 0.4);
+        // Electron boundary is 193 fm according to the reference
+        renderElectron(SCALE.ELECTRON_RADIUS, SCALE.ELECTRON_TUBE);
     } else if (type === 'proton') {
-        renderProton(0.2, 0.05);
+        // Proton rests at 0.84 fm according to the reference
+        renderProton(SCALE.PROTON_RADIUS, SCALE.PROTON_TUBE);
     } else if (type === 'hydrogen') {
-        packNucleus(1, 0, 0.1);
-        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 2.0, [0, 0, 0]);
+        packNucleus(1, 0, SCALE.PROTON_RADIUS);
+        // Electron orbits at massive 52,900 fm Bohr radius
+        addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 2.0, [0, 0, 0]);
     } else if (type === 'deuterium') {
-        packNucleus(1, 1, 0.1);
-        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 1.8, [Math.PI/4, 0, 0]);
+        packNucleus(1, 1, SCALE.PROTON_RADIUS);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 1.8, [Math.PI/4, 0, 0]);
     } else if (type === 'water') {
         // Central Oxygen 16 (8p, 8n)
-        packNucleus(8, 8, 1.0);
+        packNucleus(8, 8, SCALE.PROTON_RADIUS);
 
         // Hydrogen Bonds (1p each at 104.5 degrees)
         // Distance is ~95.84 pm = 95,840 fm
         const bondLength = SCALE.WATER_BOND;
         const halfAngle = (104.5 / 2) * Math.PI / 180;
 
-        const h1 = packNucleus(1, 0, 1.0);
+        const h1 = packNucleus(1, 0, SCALE.PROTON_RADIUS);
         h1.position.set(Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
 
-        const h2 = packNucleus(1, 0, 1.0);
+        const h2 = packNucleus(1, 0, SCALE.PROTON_RADIUS);
         h2.position.set(-Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
 
         // Add Cartesian system to show length
@@ -762,32 +811,58 @@ window.switchPhenomenon = (type) => {
         e2.userData.orbitRadius = orbitRadius;
 
     } else if (type === 'gravity') {
+        // Build a visual representation of Casimir Vacuum Shadowing creating Gravity
+        // According to the referenced theory, bodies shadow each other from the omnidirectional vacuum pressure
+        const shadowDist = 80;
+
+        // Draw the background "omnidirectional vacuum pressure" lines pressing inward
+        const vacuumGroup = new THREE.Group();
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.2 });
+
+        for(let i=0; i<150; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const rStart = 150 + Math.random() * 50;
+            const rEnd = rStart - 30;
+
+            const pts = [];
+            pts.push(new THREE.Vector3(Math.cos(angle)*rStart, Math.sin(angle)*rStart, (Math.random()-0.5)*50));
+            pts.push(new THREE.Vector3(Math.cos(angle)*rEnd, Math.sin(angle)*rEnd, (Math.random()-0.5)*50));
+
+            const geo = new THREE.BufferGeometry().setFromPoints(pts);
+            const line = new THREE.Line(geo, lineMat);
+            vacuumGroup.add(line);
+        }
+        scene.add(vacuumGroup);
+        currentMeshes.push(vacuumGroup);
+
         // Earth and Moon analog using simple macroscopic spheres
         const earthGeom = new THREE.SphereGeometry(15, 32, 32);
         const earthMat = new THREE.MeshPhongMaterial({ color: 0x1e3a8a, wireframe: SIM_STATE.wireframe });
         const earth = new THREE.Mesh(earthGeom, earthMat);
+        earth.position.set(-shadowDist/2, 0, 0);
         scene.add(earth);
         currentMeshes.push(earth);
 
-        const moonGeom = new THREE.SphereGeometry(4, 32, 32);
+        const moonGeom = new THREE.SphereGeometry(6, 32, 32);
         const moonMat = new THREE.MeshPhongMaterial({ color: 0x64748b, wireframe: SIM_STATE.wireframe });
         const moon = new THREE.Mesh(moonGeom, moonMat);
+        moon.position.set(shadowDist/2, 0, 0);
+        scene.add(moon);
+        currentMeshes.push(moon);
 
-        // Setup tidal locking rotation group
-        const orbitGroup = new THREE.Group();
-        moon.position.set(40, 0, 0);
-
-        // Add a visible marker to the moon to easily see the tidal lock (face always points at earth)
-        const craterGeom = new THREE.SphereGeometry(1, 16, 16);
-        const craterMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
-        const crater = new THREE.Mesh(craterGeom, craterMat);
-        crater.position.set(-4, 0, 0); // pointing inward toward Earth origin
-        moon.add(crater);
-
-        orbitGroup.add(moon);
-        orbitGroup.userData = { type: 'tidal_moon', rotationSpeed: { x: 0, y: 0.5, z: 0 } };
-        scene.add(orbitGroup);
-        currentMeshes.push(orbitGroup);
+        // Draw the "Shadow" volume between them where vacuum pressure is blocked
+        const shadowGeom = new THREE.CylinderGeometry(6, 15, shadowDist, 32, 1, true);
+        const shadowMat = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            transparent: true,
+            opacity: 0.6,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending
+        });
+        const shadowCyl = new THREE.Mesh(shadowGeom, shadowMat);
+        shadowCyl.rotation.z = Math.PI / 2;
+        scene.add(shadowCyl);
+        currentMeshes.push(shadowCyl);
 
     } else if (type === 'quasar') {
         // Central Black Hole / Super-Neutron
@@ -798,7 +873,7 @@ window.switchPhenomenon = (type) => {
         currentMeshes.push(bh);
 
         // Show a crushed nuclear lattice inside the event horizon
-        const crushedCore = packNucleus(20, 20, 0.1);
+        const crushedCore = packNucleus(20, 20, SCALE.PROTON_RADIUS);
         crushedCore.scale.set(0.5, 0.5, 0.5); // Pack them very tightly
         // Note: packNucleus already adds to scene and currentMeshes.
 
@@ -1008,12 +1083,11 @@ function animate() {
     time += dt;
 
     currentMeshes.forEach(mesh => {
-        // Rotations
-        if(mesh.userData.rotationSpeed) {
-            mesh.rotation.x += mesh.userData.rotationSpeed.x * dt;
-            mesh.rotation.y += mesh.userData.rotationSpeed.y * dt;
-            mesh.rotation.z += mesh.userData.rotationSpeed.z * dt;
+        if (mesh.material instanceof THREE.ShaderMaterial) {
+            mesh.material.uniforms.uTime.value = time;
         }
+
+        // Removed static rigid body rotation as phase now propagates at c
 
         // Positronium Orbit and Annihilation Event
         if(mesh.userData.isPositronium && !annihilated) {
@@ -1030,34 +1104,33 @@ function animate() {
             if(mesh.userData.orbitRadius < SCALE.ELECTRON_RADIUS * 2) {
                 annihilated = true;
                 clearScene();
-                // Unspool into linear photons (helices to represent propagating twist)
+                // Unspool into linear photons
                 const hRadius = SCALE.ELECTRON_RADIUS;
                 const hTube = SCALE.ELECTRON_TUBE;
 
-                // Represent pure linear gamma radiation jets moving away (not springs)
+                // Represent pure linear gamma radiation jets moving away along an axis.
+                // It must NOT be mechanical springs, just straight energy beams.
                 const jetLength = SCALE.ELECTRON_RADIUS * 10;
                 class LinearJetCurve extends THREE.Curve {
                     getPoint(t, optionalTarget = new THREE.Vector3()) {
                         const x = t * jetLength - (jetLength / 2);
-                        const wavePhase = t * Math.PI * 20;
-                        const y = Math.cos(wavePhase) * hRadius * 0.1; // tight high freq wave
-                        const z = Math.sin(wavePhase) * hRadius * 0.1;
-                        return optionalTarget.set(x, y, z);
+                        // True linear light jet, no helical/springy winding
+                        return optionalTarget.set(x, 0, 0);
                     }
                 }
 
-                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 8, false);
+                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 20, hTube, 8, false);
                 const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
-                mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 5.0, y: 0, z: 0 } };
+                mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 0 } };
                 mesh1.position.set(0, 0, 0);
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 8, false);
+                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 20, hTube, 8, false);
                 const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
-                mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: -5.0, y: 0, z: 0 } };
+                mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: 0 } };
                 mesh2.position.set(0, 0, 0);
                 scene.add(mesh2);
                 currentMeshes.push(mesh2);
