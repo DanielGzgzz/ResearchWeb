@@ -128,6 +128,16 @@ const tourSteps = [
         ],
         features: ['Super-massive collapsed core', 'Matter accretion disk', 'Bi-polar linear gamma radiation jets (Quasar)'],
         cameraPos: { x: 0, y: 20, z: 120 },
+    },
+    {
+        id: 'scattering',
+        title: '12. Electron Light-by-Light Scattering',
+        desc: 'Because electrons are entirely composed of trapped light (1D circular photons), scattering an electron is fundamentally a light-by-light interaction. An incoming linear photon collides with the topological knot, geometrically deflecting both bodies.',
+        math: [
+            { label: 'Compton Scattering Shift', expr: '\\Delta\\lambda = \\frac{h}{m_e c}(1 - \\cos\\theta)' }
+        ],
+        features: ['Target Geon (Electron)', 'Incoming Linear Photon (Gamma/X-ray)', 'Geometric Momentum Transfer Deflection'],
+        cameraPos: { x: 0, y: 0, z: 40 },
     }
 ];
 
@@ -371,7 +381,7 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
 }
 
 // Function to generate an electron that physically orbits a central point
-function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRotation) {
+function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRotation, dynamic=false) {
     // Enforce accurate physical scales. Electron is ~230x larger than a proton.
     const eRadius = 4.0;
     const eTube = 0.4;
@@ -402,6 +412,11 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
     trail.visible = SIM_STATE.trails;
     scene.add(trail);
 
+    let initialPos = new THREE.Vector3(orbitRadius, 0, 0);
+    const eulerRot = new THREE.Euler(orbitPlaneRotation[0], orbitPlaneRotation[1], orbitPlaneRotation[2]);
+    initialPos.applyEuler(eulerRot);
+    initialPos.add(centerPoint);
+
     // Setup orbital properties
     const orbitObj = {
         mesh: electron,
@@ -414,12 +429,23 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
         planeRotZ: orbitPlaneRotation[2],
         trail: trail,
         trailPositions: [],
-        trailMax: trailMax
+        trailMax: trailMax,
+        dynamic: dynamic,
+        velocity: new THREE.Vector3(
+            (Math.random() - 0.5) * orbitSpeed,
+            (Math.random() - 0.5) * orbitSpeed,
+            (Math.random() - 0.5) * orbitSpeed
+        )
     };
+
+    if (dynamic) {
+        orbitObj.mesh.position.copy(initialPos);
+    }
+
     currentOrbiters.push(orbitObj);
 }
 
-// Helper to construct densely packed atomic nuclei (FCC Lattice approximation)
+// Helper to construct densely packed atomic nuclei (FCC Lattice approximation bounded spherically)
 function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
     const nucleusGroup = new THREE.Group();
     const totalNucleons = numProtons + numNeutrons;
@@ -428,35 +454,29 @@ function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
     let nCount = 0;
 
     const spacing = baseScale * 2.2;
-    let shell = 0;
-    let placed = 0;
 
     // Generate Face-Centered Cubic (FCC) lattice coordinates
     const coords = [];
     if(totalNucleons === 1) {
         coords.push([0,0,0]);
     } else {
-        coords.push([0,0,0]); // Center
-        while(coords.length < totalNucleons) {
-            shell++;
-            for(let x = -shell; x <= shell; x++) {
-                for(let y = -shell; y <= shell; y++) {
-                    for(let z = -shell; z <= shell; z++) {
-                        // FCC Condition: x+y+z must be even
-                        if (Math.abs(x) + Math.abs(y) + Math.abs(z) <= shell * 2 && (Math.abs(x)+Math.abs(y)+Math.abs(z)) % 2 === 0) {
-                            // Check if already exists (simplistic check)
-                            const exists = coords.some(c => c[0]===x && c[1]===y && c[2]===z);
-                            if(!exists && coords.length < totalNucleons) {
-                                coords.push([x,y,z]);
-                            }
-                        }
+        // We generate a large enough block and then filter spherically
+        // Estimate max radius needed based on volume
+        const approximateRadius = Math.ceil(Math.pow(totalNucleons * 3/(4*Math.PI) * 2, 1/3)) + 1;
+
+        for(let x = -approximateRadius; x <= approximateRadius; x++) {
+            for(let y = -approximateRadius; y <= approximateRadius; y++) {
+                for(let z = -approximateRadius; z <= approximateRadius; z++) {
+                    // FCC Condition: x+y+z must be even
+                    if ((Math.abs(x) + Math.abs(y) + Math.abs(z)) % 2 === 0) {
+                        coords.push([x,y,z]);
                     }
                 }
             }
         }
     }
 
-    // Sort coords by distance to origin to pack from center outwards
+    // Sort coords by distance to origin to pack from center outwards to form a sphere
     coords.sort((a,b) => (a[0]**2 + a[1]**2 + a[2]**2) - (b[0]**2 + b[1]**2 + b[2]**2));
 
     for(let i=0; i<totalNucleons; i++) {
@@ -650,15 +670,34 @@ window.switchPhenomenon = (type) => {
     } else if (type === 'water') {
         // Central Oxygen 16 (8p, 8n)
         packNucleus(8, 8, 0.1);
-        // Hydrogen Bonds (1p each at 104.5 degrees approx)
+
+        // Hydrogen Bonds (1p each at 104.5 degrees)
+        // Convert 104.5 degrees to radians: 104.5 * Math.PI / 180 = 1.8238 rad
+        // Half angle is 52.25 degrees = 0.9119 rad
+        const bondLength = 6.0;
+        const h1Angle = Math.PI / 2 - (104.5 / 2) * Math.PI / 180; // slightly above/below x axis if centered on y
+        // let's place Oxygen at origin, H1 at +angle, H2 at -angle.
+        // Or standard: H1 and H2 down.
+        const halfAngle = (104.5 / 2) * Math.PI / 180;
+
         const h1 = packNucleus(1, 0, 0.1);
-        h1.position.set(4, -3, 0);
+        h1.position.set(Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
+
         const h2 = packNucleus(1, 0, 0.1);
-        h2.position.set(-4, -3, 0);
+        h2.position.set(-Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
 
         // 10 Electrons total
-        for(let i=0; i<2; i++) addOrbitingElectron(new THREE.Vector3(0,0,0), 10, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Inner O shell
-        for(let i=0; i<8; i++) addOrbitingElectron(new THREE.Vector3(0,-1,0), 20, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0]); // Outer sharing shell
+        // Inner O shell (2 electrons)
+        for(let i=0; i<2; i++) {
+            addOrbitingElectron(new THREE.Vector3(0,0,0), 8, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0]);
+        }
+
+        // Outer sharing shell (8 electrons)
+        // Adjust the center slightly down to encompass the Hydrogens naturally
+        const sharedCenter = new THREE.Vector3(0, -bondLength * 0.3, 0);
+        for(let i=0; i<8; i++) {
+            addOrbitingElectron(sharedCenter, 18, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0]);
+        }
 
     } else if (type === 'gold') {
         const core = packNucleus(79, 118, 0.1);
@@ -715,10 +754,15 @@ window.switchPhenomenon = (type) => {
     } else if (type === 'quasar') {
         // Central Black Hole / Super-Neutron
         const coreGeom = new THREE.SphereGeometry(5, 32, 32);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); // Perfectly black
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.85 }); // Slightly transparent to see crushing core
         const bh = new THREE.Mesh(coreGeom, coreMat);
         scene.add(bh);
         currentMeshes.push(bh);
+
+        // Show a crushed nuclear lattice inside the event horizon
+        const crushedCore = packNucleus(20, 20, 0.1);
+        crushedCore.scale.set(0.5, 0.5, 0.5); // Pack them very tightly
+        // Note: packNucleus already adds to scene and currentMeshes.
 
         // Accretion disk
         const diskGeom = new THREE.RingGeometry(8, 25, 64);
@@ -736,11 +780,26 @@ window.switchPhenomenon = (type) => {
         currentMeshes.push(disk);
 
         // Bi-polar Gamma Ray Jets (Quasar emission)
-        const jet1 = renderLinearPhoton(100, 2, [0, 5, 0]);
+        // Adjust positions so they originate exactly from the poles of the black hole
+        const jet1 = renderLinearPhoton(100, 2, [0, 0, 0]);
         jet1.rotation.z = Math.PI / 2; // Point UP (Y axis)
 
-        const jet2 = renderLinearPhoton(100, 2, [0, -5, 0]);
+        const jet2 = renderLinearPhoton(100, 2, [0, 0, 0]);
         jet2.rotation.z = -Math.PI / 2; // Point DOWN (-Y axis)
+        jet2.rotation.x = Math.PI; // flip phase to mirror
+
+    } else if (type === 'scattering') {
+        // Target Electron (Stationary at start)
+        const targetElectron = renderElectron(4.0, 0.4, [0, 0, 0]);
+        targetElectron.userData.velocity = [0, 0, 0];
+        targetElectron.userData.isScatteringTarget = true;
+
+        // Incoming Linear Photon Wave (Approaching from -X)
+        const incomingPhoton = renderLinearPhoton(20, 2, [-30, 0, 0]);
+        // Set up the photon to travel along X
+        incomingPhoton.userData.velocity = [0.3, 0, 0];
+        incomingPhoton.userData.isScatteringProjectile = true;
+        incomingPhoton.userData.hasScattered = false;
 
     } else if (type === 'custom') {
         // Read custom builder values
@@ -750,19 +809,16 @@ window.switchPhenomenon = (type) => {
 
         packNucleus(z, n, 0.1);
 
-        // Very basic shell distributor for custom mode
-        let ePlaced = 0;
-        let shellR = 15;
-        while(ePlaced < e) {
-            let capacity = 2 * Math.pow((shellR/15), 2); // pseudo-capacity
-            if(capacity < 2) capacity = 2;
-            let toPlace = Math.min(e - ePlaced, Math.floor(capacity));
-            for(let i=0; i<toPlace; i++) {
-                 addOrbitingElectron(new THREE.Vector3(0,0,0), shellR, 3.0 / (shellR/10), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
-            }
-            ePlaced += toPlace;
-            shellR += 15;
+        // Custom Mode: Dynamic electrons with real-time repulsion to form natural shells
+        for(let i=0; i<e; i++) {
+            // Spawn electrons at randomized somewhat close distances, they will push each other away
+            const initialRadius = 15 + Math.random() * 10;
+            const initialSpeed = 10.0;
+            addOrbitingElectron(new THREE.Vector3(0,0,0), initialRadius, initialSpeed, [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2], true);
         }
+
+        // Set an attractive charge in the core equal to Z
+        scene.userData.coreCharge = z;
     }
 
     // Set wireframe state on freshly created materials
@@ -933,13 +989,47 @@ function animate() {
             mesh.position.z += mesh.userData.velocity[2] * dt * 60;
 
             // Annihilation Trigger (Check distance between origin and particle)
-            if(!annihilated && Math.abs(mesh.position.x) < 0.5) {
+            if(!annihilated && mesh.userData.type === 'electron' && Math.abs(mesh.position.x) < 0.5) {
                 annihilated = true;
                 clearScene();
-                // Spawn pure gamma radiation replacing the loop
-                renderPhotonWave(60, 4, [0,0,0], 'x', false);
-                renderPhotonWave(60, 4, [0,0,0], 'x', true);
+                // Instead of lines, use the 3D tube geometry of the loop and unspool them outwards
+                // We'll mimic this by spawning detached loop pieces flying away
+                // Creating a helix from the loop tube
+                const hRadius = 4.0;
+                const hTube = 0.4;
+
+                class HelixCurve extends THREE.Curve {
+                    getPoint(t, optionalTarget = new THREE.Vector3()) {
+                        const u = t * Math.PI * 8; // Multiple loops
+                        const x = t * 60 - 30; // Unspool across X
+                        const y = Math.cos(u) * hRadius;
+                        const z = Math.sin(u) * hRadius;
+                        return optionalTarget.set(x, y, z);
+                    }
+                }
+
+                const g1 = new THREE.TubeGeometry(new HelixCurve(), 200, hTube, 16, false);
+                const m1 = createGeonMaterial(2.0); // e+
+                const mesh1 = new THREE.Mesh(g1, m1);
+                mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 0.5 } };
+                mesh1.position.set(0, 0, 0);
+                scene.add(mesh1);
+                currentMeshes.push(mesh1);
+
+                const g2 = new THREE.TubeGeometry(new HelixCurve(), 200, hTube, 16, false);
+                const m2 = createGeonMaterial(-2.0); // e-
+                const mesh2 = new THREE.Mesh(g2, m2);
+                mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -0.5 } };
+                mesh2.rotation.y = Math.PI; // flip
+                mesh2.position.set(0, 0, 0);
+                scene.add(mesh2);
+                currentMeshes.push(mesh2);
             }
+        }
+
+        // Handle unspooled photon jets
+        if (mesh.userData.isPhotonJet) {
+            mesh.position.x += mesh.userData.dir * dt * 30;
         }
 
         // Photon Wave propagation
@@ -961,6 +1051,28 @@ function animate() {
             mesh.userData.timeOffset += dt * 10;
             const points = [];
             const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
+
+            // Allow origins to dynamically move (e.g., scattering projectile)
+            if (mesh.userData.isScatteringProjectile) {
+                mesh.userData.origin[0] += mesh.userData.velocity[0] * dt * 60;
+                mesh.userData.origin[1] += mesh.userData.velocity[1] * dt * 60;
+                mesh.userData.origin[2] += mesh.userData.velocity[2] * dt * 60;
+
+                // Check for collision with target electron near origin
+                if (!mesh.userData.hasScattered && Math.abs(mesh.userData.origin[0]) < 2.0) {
+                    mesh.userData.hasScattered = true;
+                    // Deflect photon (scattering angle)
+                    mesh.userData.velocity = [0.15, 0.2, 0];
+                    mesh.rotation.z = Math.PI / 6; // visual tilt
+
+                    // Deflect target electron (Conservation of Momentum)
+                    const target = currentMeshes.find(m => m.userData.isScatteringTarget);
+                    if (target) {
+                        target.userData.velocity = [0.05, -0.05, 0]; // Push the electron
+                    }
+                }
+            }
+
             const pos = mesh.userData.origin;
             for(let i=0; i<100; i++) {
                 let t = i/100 * mesh.userData.length;
@@ -997,30 +1109,93 @@ function animate() {
     });
 
     // Process Orbiting Electrons
-    currentOrbiters.forEach(orbiter => {
-        // Calculate next position to determine velocity vector
-        const nextAngle = orbiter.angle + (orbiter.speed * dt);
+    currentOrbiters.forEach((orbiter, i) => {
+        let currentPos, nextPos;
 
-        let nx = Math.cos(nextAngle) * orbiter.radius;
-        let nz = Math.sin(nextAngle) * orbiter.radius;
+        if (orbiter.dynamic) {
+            // Apply forces to dynamically simulate Schrodinger shells via Coulombic interactions
+            const force = new THREE.Vector3(0,0,0);
+            const pos = orbiter.mesh.position;
 
-        let currentVec = new THREE.Vector3(Math.cos(orbiter.angle) * orbiter.radius, 0, Math.sin(orbiter.angle) * orbiter.radius);
-        let nextVec = new THREE.Vector3(nx, 0, nz);
+            // 1. Attraction to core
+            const dirToCore = new THREE.Vector3().subVectors(orbiter.center, pos);
+            const distToCore = dirToCore.length();
+            if(distToCore > 0.1) {
+                // F = k * (q1*q2) / r^2
+                // We fake k for visual scale
+                const pullStrength = 500 * (scene.userData.coreCharge || 1) / (distToCore * distToCore);
+                force.add(dirToCore.normalize().multiplyScalar(pullStrength));
+            }
 
-        const eulerRot = new THREE.Euler(orbiter.planeRotX, orbiter.planeRotY, orbiter.planeRotZ);
-        currentVec.applyEuler(eulerRot);
-        nextVec.applyEuler(eulerRot);
+            // 2. Repulsion from other electrons
+            currentOrbiters.forEach((other, j) => {
+                if (i === j) return;
+                const dirToOther = new THREE.Vector3().subVectors(pos, other.mesh.position);
+                const distToOther = dirToOther.length();
+                if(distToOther > 0.1) {
+                    const pushStrength = 400 / (distToOther * distToOther);
+                    force.add(dirToOther.normalize().multiplyScalar(pushStrength));
+                }
+            });
 
-        const currentPos = orbiter.center.clone().add(currentVec);
-        const nextPos = orbiter.center.clone().add(nextVec);
+            // Pauli exclusion pseudo-force / structural limit to prevent collapse into core
+            if (distToCore < 10) {
+                const bounce = new THREE.Vector3().subVectors(pos, orbiter.center).normalize();
+                force.add(bounce.multiplyScalar(1000 / (distToCore * distToCore)));
+            }
 
-        // Move to current
-        orbiter.mesh.position.copy(currentPos);
-        orbiter.angle = nextAngle;
+            // Apply angular momentum (centripetal pseudo-force) to maintain orbit
+            const tangent = new THREE.Vector3(-pos.z, 0, pos.x).normalize();
+            // Give them slightly different orbital axes so they don't all align flat
+            tangent.applyAxisAngle(new THREE.Vector3(1,0,0), orbiter.planeRotX);
+            tangent.applyAxisAngle(new THREE.Vector3(0,1,0), orbiter.planeRotY);
+            tangent.applyAxisAngle(new THREE.Vector3(0,0,1), orbiter.planeRotZ);
 
-        // Kinematics: The Möbius ring must orient its primary axis along its direction of travel (velocity vector)
-        // to represent the helical elongation (inertia) defined in the theory.
-        orbiter.mesh.lookAt(nextPos);
+            force.add(tangent.multiplyScalar(20)); // orbit push
+
+            // Add a slight drag/damping so they settle into shells
+            const drag = orbiter.velocity.clone().multiplyScalar(-0.1);
+            force.add(drag);
+
+            // Update Velocity & Position
+            orbiter.velocity.add(force.multiplyScalar(dt));
+
+            // Cap speed
+            if(orbiter.velocity.length() > 50) {
+                orbiter.velocity.normalize().multiplyScalar(50);
+            }
+
+            nextPos = pos.clone().add(orbiter.velocity.clone().multiplyScalar(dt));
+            orbiter.mesh.position.copy(nextPos);
+
+            // Look forward
+            orbiter.mesh.lookAt(nextPos.clone().add(orbiter.velocity));
+
+        } else {
+            // Standard Fixed Geometric Orbit
+            const nextAngle = orbiter.angle + (orbiter.speed * dt);
+
+            let nx = Math.cos(nextAngle) * orbiter.radius;
+            let nz = Math.sin(nextAngle) * orbiter.radius;
+
+            let currentVec = new THREE.Vector3(Math.cos(orbiter.angle) * orbiter.radius, 0, Math.sin(orbiter.angle) * orbiter.radius);
+            let nextVec = new THREE.Vector3(nx, 0, nz);
+
+            const eulerRot = new THREE.Euler(orbiter.planeRotX, orbiter.planeRotY, orbiter.planeRotZ);
+            currentVec.applyEuler(eulerRot);
+            nextVec.applyEuler(eulerRot);
+
+            currentPos = orbiter.center.clone().add(currentVec);
+            nextPos = orbiter.center.clone().add(nextVec);
+
+            // Move to current
+            orbiter.mesh.position.copy(currentPos);
+            orbiter.angle = nextAngle;
+
+            // Kinematics: The Möbius ring must orient its primary axis along its direction of travel (velocity vector)
+            // to represent the helical elongation (inertia) defined in the theory.
+            orbiter.mesh.lookAt(nextPos);
+        }
 
         // Apply intrinsic Z-spin while maintaining forward orientation
         orbiter.mesh.rotateZ(orbiter.mesh.userData.rotationSpeed.z * time * 20); // Internal spin
