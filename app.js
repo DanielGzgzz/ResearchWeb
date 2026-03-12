@@ -177,22 +177,34 @@ varying vec3 vPosition;
 varying vec3 vNormal;
 
 void main() {
-  float theta = vUv.y * 2.0 * 3.14159;
+  // We use vUv.y to identify which face of the brick we are on:
+  // 0.25 = +E face, 0.75 = -E face, 0.0 = +B face, 0.5 = -B face, 0.1 = Ends
+
   // Propagate wave along the length of the tube (vUv.x) via uTime to simulate light speed
   float propagation = uTime * 20.0;
-  float phase1 = sin(theta + vUv.x * uTwistFactor * 3.14159 * 2.0 - propagation); // E field axis
-  float phase2 = cos(theta + vUv.x * uTwistFactor * 3.14159 * 2.0 - propagation); // B field axis
+  float localPhase = vUv.x * uTwistFactor * 3.14159 * 2.0 - propagation;
 
-  vec3 eColor = mix(colorEMinus, colorEPlus, (phase1 + 1.0) / 2.0);
-  vec3 bColor = mix(colorBMinus, colorBPlus, (phase2 + 1.0) / 2.0);
+  vec3 baseColor;
 
-  float weightE = abs(phase1);
-  float weightB = abs(phase2);
-  float totalWeight = weightE + weightB;
-  weightE /= totalWeight;
-  weightB /= totalWeight;
-
-  vec3 baseColor = eColor * weightE + bColor * weightB;
+  // Instead of blending, each face strictly maps to either the E or B field component
+  if (vUv.y > 0.15 && vUv.y < 0.35) {
+      // +E face (~0.25)
+      float amp = sin(localPhase);
+      baseColor = mix(colorEMinus, colorEPlus, (amp + 1.0) / 2.0);
+  } else if (vUv.y > 0.65 && vUv.y < 0.85) {
+      // -E face (~0.75)
+      // On the negative E face, the field vector is negated
+      float amp = sin(localPhase);
+      baseColor = mix(colorEMinus, colorEPlus, (amp + 1.0) / 2.0);
+  } else if (vUv.y > 0.4 && vUv.y < 0.6) {
+      // -B face (~0.5)
+      float amp = cos(localPhase);
+      baseColor = mix(colorBMinus, colorBPlus, (amp + 1.0) / 2.0);
+  } else {
+      // +B face (~0.0) or Ends
+      float amp = cos(localPhase);
+      baseColor = mix(colorBMinus, colorBPlus, (amp + 1.0) / 2.0);
+  }
 
   vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
   float diff = max(dot(vNormal, lightDir), 0.0);
@@ -309,57 +321,63 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true) {
         const segmentLength = pt.distanceTo(nextPt);
         const halfThick = T.clone().multiplyScalar(segmentLength * 0.4); // 80% coverage, 20% gap
 
-        // Define the 8 corners of the thin square section
-        const corners = [
-            pt.clone().add(E).add(B).sub(halfThick), // 0: Top-Right-Back
-            pt.clone().sub(E).add(B).sub(halfThick), // 1: Bottom-Right-Back
-            pt.clone().sub(E).sub(B).sub(halfThick), // 2: Bottom-Left-Back
-            pt.clone().add(E).sub(B).sub(halfThick), // 3: Top-Left-Back
-            pt.clone().add(E).add(B).add(halfThick), // 4: Top-Right-Front
-            pt.clone().sub(E).add(B).add(halfThick), // 5: Bottom-Right-Front
-            pt.clone().sub(E).sub(B).add(halfThick), // 6: Bottom-Left-Front
-            pt.clone().add(E).sub(B).add(halfThick)  // 7: Top-Left-Front
-        ];
+        // Increase visual size of B and E vectors slightly for better visibility
+        const E_vis = E.clone().multiplyScalar(1.5);
+        const B_vis = B.clone().multiplyScalar(1.5);
 
-        // Add positions
-        corners.forEach(c => positions.push(c.x, c.y, c.z));
+        const c0 = pt.clone().add(E_vis).add(B_vis).sub(halfThick); // +E, +B, Back
+        const c1 = pt.clone().sub(E_vis).add(B_vis).sub(halfThick); // -E, +B, Back
+        const c2 = pt.clone().sub(E_vis).sub(B_vis).sub(halfThick); // -E, -B, Back
+        const c3 = pt.clone().add(E_vis).sub(B_vis).sub(halfThick); // +E, -B, Back
+        const c4 = pt.clone().add(E_vis).add(B_vis).add(halfThick); // +E, +B, Front
+        const c5 = pt.clone().sub(E_vis).add(B_vis).add(halfThick); // -E, +B, Front
+        const c6 = pt.clone().sub(E_vis).sub(B_vis).add(halfThick); // -E, -B, Front
+        const c7 = pt.clone().add(E_vis).sub(B_vis).add(halfThick); // +E, -B, Front
 
-        // U coordinates for shaders to map phase along the curve
         const u = i / segments;
-        for(let j=0; j<8; j++) uvs.push(u, 0);
 
-        // Simple normals pointing outwards from the brick center
-        const center = pt.clone();
-        corners.forEach(c => {
-            const n = c.clone().sub(center).normalize();
-            normals.push(n.x, n.y, n.z);
-        });
+        function addQuad(v0, v1, v2, v3, norm, uvY) {
+            positions.push(...v0, ...v1, ...v2);
+            normals.push(...norm, ...norm, ...norm);
+            uvs.push(u, uvY, u, uvY, u, uvY);
 
-        // 12 triangles per brick (6 faces * 2 triangles)
-        const v = vertexOffset;
-        const brickIndices = [
-            // Back face
-            v+0, v+1, v+2, v+0, v+2, v+3,
-            // Front face
-            v+4, v+6, v+5, v+4, v+7, v+6,
-            // Right face
-            v+0, v+4, v+5, v+0, v+5, v+1,
-            // Left face
-            v+3, v+2, v+6, v+3, v+6, v+7,
-            // Top face
-            v+0, v+3, v+7, v+0, v+7, v+4,
-            // Bottom face
-            v+1, v+5, v+6, v+1, v+6, v+2
-        ];
+            positions.push(...v0, ...v2, ...v3);
+            normals.push(...norm, ...norm, ...norm);
+            uvs.push(u, uvY, u, uvY, u, uvY);
+        }
 
-        indices.push(...brickIndices);
-        vertexOffset += 8;
+        const normE = E.clone().normalize();
+        const normB = B.clone().normalize();
+        const normT = T.clone().normalize();
+
+        // The shader reads vUv.y to determine the azimuthal angle theta around the tube:
+        // theta = vUv.y * 2.0 * PI
+        // E field phase oscillates via sin(theta) -> peak at theta=PI/2 (vUv.y=0.25) and 3PI/2 (vUv.y=0.75)
+        // B field phase oscillates via cos(theta) -> peak at theta=0 (vUv.y=0.0) and PI (vUv.y=0.5)
+
+        // Top face (+E direction) -> E peaks here, B is 0. Map to vUv.y = 0.25
+        addQuad(c0.toArray(), c3.toArray(), c7.toArray(), c4.toArray(), normE.toArray(), 0.25);
+
+        // Bottom face (-E direction) -> E peaks here, B is 0. Map to vUv.y = 0.75
+        addQuad(c1.toArray(), c2.toArray(), c6.toArray(), c5.toArray(), normE.clone().negate().toArray(), 0.75);
+
+        // Right face (+B direction) -> B peaks here, E is 0. Map to vUv.y = 0.0
+        addQuad(c0.toArray(), c1.toArray(), c5.toArray(), c4.toArray(), normB.toArray(), 0.0);
+
+        // Left face (-B direction) -> B peaks here, E is 0. Map to vUv.y = 0.5
+        addQuad(c3.toArray(), c7.toArray(), c6.toArray(), c2.toArray(), normB.clone().negate().toArray(), 0.5);
+
+        // Back face (-T direction) -> Cap
+        addQuad(c0.toArray(), c3.toArray(), c2.toArray(), c1.toArray(), normT.clone().negate().toArray(), 0.0);
+
+        // Front face (+T direction) -> Cap
+        addQuad(c4.toArray(), c5.toArray(), c6.toArray(), c7.toArray(), normT.toArray(), 0.0);
     }
 
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geom.setIndex(indices);
+    // Not using shared vertices/indices anymore so each face can have discrete UVs & flat normals
     geom.computeBoundingSphere();
 
     return geom;
@@ -384,8 +402,7 @@ function createGeonMaterial(twistFactor, isNeutral=false) {
         },
         side: THREE.DoubleSide,
         wireframe: SIM_STATE.wireframe,
-        transparent: true,
-        opacity: SIM_STATE.lightMode ? 0.3 : 1.0 // Dim topology if focusing on light prop
+        transparent: false,
     });
 }
 
