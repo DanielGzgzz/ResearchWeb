@@ -274,6 +274,97 @@ let currentOrbiters = []; // Track electrons that orbit the nucleus
 let time = 0;
 let annihilated = false;
 
+// Function to generate discrete square sections (bricks) along a curve
+function createVectorBricksGeometry(curve, segments, radius, closed=true) {
+    const geom = new THREE.BufferGeometry();
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+    const indices = [];
+
+    // Extract evenly spaced points and their mathematical frames
+    const points = curve.getSpacedPoints(segments);
+    const frames = curve.computeFrenetFrames(segments, closed);
+
+    // Each segment gets a thin square block representing the local E and B vector plane
+    let vertexOffset = 0;
+
+    for (let i = 0; i < segments; i++) {
+        const pt = points[i];
+        let nextPt;
+        if (!closed && i === segments - 1) {
+            // For unclosed curves, the last segment shouldn't wrap to 0. Use previous segment length.
+            nextPt = pt.clone().add(pt.clone().sub(points[i-1]));
+        } else {
+            nextPt = points[(i + 1) % segments];
+        }
+
+        const T = frames.tangents[i];
+
+        // Treat mathematically as E (Normal) and B (Binormal) vectors
+        const E = frames.normals[i].clone().normalize().multiplyScalar(radius);
+        const B = frames.binormals[i].clone().normalize().multiplyScalar(radius);
+
+        // Create a thin brick (slice) centered at pt, thickness based on segment length
+        const segmentLength = pt.distanceTo(nextPt);
+        const halfThick = T.clone().multiplyScalar(segmentLength * 0.4); // 80% coverage, 20% gap
+
+        // Define the 8 corners of the thin square section
+        const corners = [
+            pt.clone().add(E).add(B).sub(halfThick), // 0: Top-Right-Back
+            pt.clone().sub(E).add(B).sub(halfThick), // 1: Bottom-Right-Back
+            pt.clone().sub(E).sub(B).sub(halfThick), // 2: Bottom-Left-Back
+            pt.clone().add(E).sub(B).sub(halfThick), // 3: Top-Left-Back
+            pt.clone().add(E).add(B).add(halfThick), // 4: Top-Right-Front
+            pt.clone().sub(E).add(B).add(halfThick), // 5: Bottom-Right-Front
+            pt.clone().sub(E).sub(B).add(halfThick), // 6: Bottom-Left-Front
+            pt.clone().add(E).sub(B).add(halfThick)  // 7: Top-Left-Front
+        ];
+
+        // Add positions
+        corners.forEach(c => positions.push(c.x, c.y, c.z));
+
+        // U coordinates for shaders to map phase along the curve
+        const u = i / segments;
+        for(let j=0; j<8; j++) uvs.push(u, 0);
+
+        // Simple normals pointing outwards from the brick center
+        const center = pt.clone();
+        corners.forEach(c => {
+            const n = c.clone().sub(center).normalize();
+            normals.push(n.x, n.y, n.z);
+        });
+
+        // 12 triangles per brick (6 faces * 2 triangles)
+        const v = vertexOffset;
+        const brickIndices = [
+            // Back face
+            v+0, v+1, v+2, v+0, v+2, v+3,
+            // Front face
+            v+4, v+6, v+5, v+4, v+7, v+6,
+            // Right face
+            v+0, v+4, v+5, v+0, v+5, v+1,
+            // Left face
+            v+3, v+2, v+6, v+3, v+6, v+7,
+            // Top face
+            v+0, v+3, v+7, v+0, v+7, v+4,
+            // Bottom face
+            v+1, v+5, v+6, v+1, v+6, v+2
+        ];
+
+        indices.push(...brickIndices);
+        vertexOffset += 8;
+    }
+
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setIndex(indices);
+    geom.computeBoundingSphere();
+
+    return geom;
+}
+
 function createGeonMaterial(twistFactor, isNeutral=false) {
     const ePlus = isNeutral ? '#557755' : '#00ff00';
     const eMinus = isNeutral ? '#775555' : '#ff0000';
@@ -340,8 +431,8 @@ function addFieldVectors(mesh, curveType, params) {
 
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
-    // Use radialSegments = 4 to enforce the "square tube" light brick geometry
-    const geometry = new THREE.TubeGeometry(curve, 200, tubeRadius, 4, true);
+    // Use the custom discrete vector bricks geometry
+    const geometry = createVectorBricksGeometry(curve, 100, tubeRadius, true);
     const material = createGeonMaterial(isPositron ? -2.0 : 2.0);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
@@ -382,8 +473,8 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
 
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
-    // Use radialSegments = 4 to enforce the "square tube" light brick geometry
-    const geometry = new THREE.TubeGeometry(curve, 250, tubeRadius, 4, true);
+    // Use the custom discrete vector bricks geometry
+    const geometry = createVectorBricksGeometry(curve, 120, tubeRadius, true);
     const material = createGeonMaterial(3.0, isNeutral);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...pos);
@@ -1126,8 +1217,9 @@ function animate() {
                     }
                 }
 
-                // Use radialSegments = 4 to enforce the "square tube" light brick geometry
-                const g1 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 4, false);
+                // Use the custom discrete vector bricks geometry
+                const linearCurve = new LinearJetCurve();
+                const g1 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
                 const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
@@ -1135,7 +1227,7 @@ function animate() {
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = new THREE.TubeGeometry(new LinearJetCurve(), 500, hTube, 4, false);
+                const g2 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
                 const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
