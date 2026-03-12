@@ -47,7 +47,7 @@ const tourSteps = [
             { label: 'Inward Vacuum Pressure', expr: 'F_{vac} = \\frac{4\\hbar c}{R_p^2}' },
         ],
         features: ['(3,2)-Torus knot (Trefoil knot)', 'Sub-femtometer density (0.84 fm radius)', 'Integrates to +1e via two outward twists (+2/3e) and one inward (-1/3e)'],
-        cameraPos: { x: 0, y: 0, z: 6 },
+        cameraPos: { x: 0, y: 0, z: 1.5 },
     },
     {
         id: 'hydrogen',
@@ -171,6 +171,7 @@ uniform vec3 colorEMinus;  // Red
 uniform vec3 colorBPlus;   // Purple
 uniform vec3 colorBMinus;  // Yellow
 uniform float uTwistFactor;
+uniform float isLinear;
 
 varying vec2 vUv;
 varying vec3 vPosition;
@@ -207,10 +208,23 @@ void main() {
     // Combine structural twist, propagation, and the local face angle to get the absolute field phase
     float localPhase = vUv.x * uTwistFactor * 6.28318530718 - propagation;
 
-    // The continuous relative phase combines the longitudinal wave phase with the transverse face angle
-    float phi = localPhase + faceAngle;
+    vec3 baseColor;
 
-    vec3 baseColor = getContinuousPhaseColor(phi);
+    if (isLinear > 0.5) {
+        // For linear photons, E and B fields are orthogonal and propagate forward
+        // They are NOT twisted together.
+
+        // Use vUv.x mapping to alternate colors along the length (like a pure wave propagation)
+        // This makes it visible from all angles identically without caring about top/bottom sides.
+        // It provides the "rainbow" linear look seen in pure EM waves.
+
+        // This reproduces the getContinuousPhaseColor but using only localPhase (longitudinal), ignoring faceAngle
+        baseColor = getContinuousPhaseColor(localPhase);
+    } else {
+        // The continuous relative phase combines the longitudinal wave phase with the transverse face angle
+        float phi = localPhase + faceAngle;
+        baseColor = getContinuousPhaseColor(phi);
+    }
 
     vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
     float diff = max(dot(vNormal, lightDir), 0.0);
@@ -424,11 +438,12 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
     return geom;
 }
 
-function createGeonMaterial(twistFactor, isNeutral=false) {
-    const ePlus = isNeutral ? '#557755' : '#00ff00';
-    const eMinus = isNeutral ? '#775555' : '#ff0000';
-    const bPlus = isNeutral ? '#555577' : '#800080';
-    const bMinus = isNeutral ? '#777755' : '#ffff00';
+function createGeonMaterial(twistFactor, particleType = 'electron') {
+    // Revert to strict E/B field mapping
+    const ePlus = '#00ff00';   // Green
+    const eMinus = '#ff0000';  // Red
+    const bPlus = '#800080';   // Purple
+    const bMinus = '#ffff00';  // Yellow
 
     return new THREE.ShaderMaterial({
         vertexShader: particleVertexShader,
@@ -440,6 +455,7 @@ function createGeonMaterial(twistFactor, isNeutral=false) {
             colorBPlus: { value: new THREE.Color(bPlus) },
             colorBMinus: { value: new THREE.Color(bMinus) },
             uTwistFactor: { value: twistFactor },
+            isLinear: { value: particleType === 'linear_photon' ? 1.0 : 0.0 },
         },
         side: THREE.DoubleSide,
         wireframe: SIM_STATE.wireframe,
@@ -491,9 +507,12 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     const curve = new MobiusCurve(radius, tubeRadius);
     // Use the custom discrete vector bricks geometry
     const geometry = createVectorBricksGeometry(curve, 100, tubeRadius, true);
-    const material = createGeonMaterial(isPositron ? -2.0 : 2.0);
+    const material = createGeonMaterial(isPositron ? -2.0 : 2.0, isPositron ? 'positron' : 'electron');
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(...pos);
+
+    if(Array.isArray(pos)) mesh.position.set(...pos);
+    else mesh.position.set(0,0,0);
+
     mesh.userData = {
         type: isPositron ? 'positron' : 'electron',
         rotationSpeed: { x: 0, y: 0, z: 0 }, // Removed rigid spin; mechanics are now strictly light propagation
@@ -504,6 +523,69 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     scene.add(mesh);
     currentMeshes.push(mesh);
     return mesh;
+}
+
+
+// ----------------------------------------------------------------------------
+// CASIMIR VACUUM FLUID VISUALIZATION
+// ----------------------------------------------------------------------------
+function renderVacuumFluid() {
+    // 1. Render the Zero-Point Tensor Fluid (Volumetric Grid of points)
+    const range = 40;
+    const spacing = 4;
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [];
+    const colors = [];
+
+    for ( let x = -range; x <= range; x += spacing ) {
+        for ( let y = -range; y <= range; y += spacing ) {
+            for ( let z = -range; z <= range; z += spacing ) {
+                vertices.push( x, y, z );
+                // Faint bluish-white for vacuum modes
+                colors.push( 0.2, 0.3, 0.5 );
+            }
+        }
+    }
+
+    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+
+    const material = new THREE.PointsMaterial( {
+        size: 0.15,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.4,
+        blending: THREE.AdditiveBlending
+    });
+
+    const vacuumField = new THREE.Points( geometry, material );
+    vacuumField.userData.isVacuumField = true;
+    vacuumField.scale.set(3, 3, 3);
+
+    // Add a slight animation to the vacuum modes
+    vacuumField.userData.update = function(time) {
+        const positions = this.geometry.attributes.position.array;
+        const colors = this.geometry.attributes.color.array;
+        for ( let i = 0; i < positions.length; i += 3 ) {
+            const x = positions[i];
+            const y = positions[i+1];
+            const z = positions[i+2];
+
+            // Subtle quantum fluctuation
+            const fluctuation = Math.sin(x * 0.5 + time * 2.0) * Math.cos(z * 0.5 + time * 1.5) * 0.2;
+            positions[i+1] = Math.round(y/spacing)*spacing + fluctuation;
+
+            // Color pulse based on displacement
+            colors[i+1] = 0.3 + fluctuation * 0.5; // Green channel
+        }
+        this.geometry.attributes.position.needsUpdate = true;
+        this.geometry.attributes.color.needsUpdate = true;
+    };
+
+    scene.add( vacuumField );
+    currentMeshes.push( vacuumField );
+
+    renderLinearPhoton(6.0, 0.2, 0.05);
 }
 
 function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
@@ -521,9 +603,12 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
     // of wavelengths that fit into the geometry.
     // 100 length / (SIM_STATE.lightWavelength * 10) gives a nice number of propagating waves
     const waveFreq = 100.0 / (SIM_STATE.lightWavelength * 10.0);
-    const material = createGeonMaterial(waveFreq); // Re-purpose twist for spatial wave freq
+    const material = createGeonMaterial(waveFreq, 'linear_photon'); // Re-purpose twist for spatial wave freq
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(...pos);
+
+    if(Array.isArray(pos)) mesh.position.set(...pos);
+    else mesh.position.set(0,0,0);
+
     mesh.userData = { type: 'linear_photon', length, amplitude, origin: pos, curveType: 'linear' };
 
     addFieldVectors(mesh, 'linear', { length, amplitude });
@@ -536,9 +621,12 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
     // Use the custom discrete vector bricks geometry
     const geometry = createVectorBricksGeometry(curve, 120, tubeRadius, true);
-    const material = createGeonMaterial(3.0, isNeutral);
+    const material = createGeonMaterial(3.0, isNeutral ? 'neutron' : 'proton');
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(...pos);
+
+    if(Array.isArray(pos)) mesh.position.set(...pos);
+    else mesh.position.set(0,0,0);
+
     mesh.userData = { type: isNeutral ? 'neutron' : 'proton', rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
 
     addFieldVectors(mesh, 'trefoil', { radius, tubeRadius });
@@ -550,8 +638,8 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
 // Function to generate an electron that physically orbits a central point
 function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRotation, dynamic=false) {
     // Enforce accurate physical scales. Electron is ~230x larger than a proton.
-    const eRadius = 4.0;
-    const eTube = 0.4;
+    const eRadius = SCALE.ELECTRON_RADIUS;
+    const eTube = SCALE.ELECTRON_TUBE;
 
     const electron = renderElectron(eRadius, eTube, [0,0,0]);
     // Remove from main static list so it doesn't get standard static rotation mixed up
@@ -614,6 +702,11 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
 
 // Helper to construct densely packed atomic nuclei (FCC Lattice approximation)
 function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
+    // If the camera is incredibly far away, we apply a visual logarithmic scale to the nucleus so it's not entirely lost,
+    // though the physical coordinates remain tightly packed.
+    // Wait, let's just use SCALE.PROTON_RADIUS but visually scale the Group by a factor if we are in a massive scene.
+    // Actually, I'll just change the baseScale calls in switchPhenomenon:
+
     const nucleusGroup = new THREE.Group();
     const totalNucleons = numProtons + numNeutrons;
 
@@ -677,6 +770,18 @@ function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
         currentMeshes.splice(currentMeshes.indexOf(nucleon), 1);
         nucleusGroup.add(nucleon);
     }
+
+
+    // Add a glowing visual marker so the nucleus can be found at immense distances (like 120,000 fm)
+    // The marker scales slightly with the nucleus size but guarantees a minimum visible footprint
+    const markerGeom = new THREE.SphereGeometry(SCALE.PROTON_RADIUS * 10 * Math.pow(totalNucleons, 1/3), 16, 16);
+    const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false });
+    const marker = new THREE.Mesh(markerGeom, markerMat);
+    nucleusGroup.add(marker);
+
+    // If the camera is extremely far, we might still not see the marker, so let's make it conditionally huge
+    // depending on the physical scale requested in switchPhenomenon (handled globally by camera distance or just dynamically scaling)
+    marker.userData = { isNucleusMarker: true };
 
     scene.add(nucleusGroup);
     currentMeshes.push(nucleusGroup);
@@ -832,20 +937,20 @@ window.switchPhenomenon = (type) => {
     }
 
     if (type === 'vacuum') {
-        // Just the starry background
+        renderVacuumFluid();
     } else if (type === 'electron') {
         renderElectron(4.0, 0.4);
     } else if (type === 'proton') {
         renderProton(0.2, 0.05);
     } else if (type === 'hydrogen') {
-        packNucleus(1, 0, 0.1);
-        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 2.0, [0, 0, 0]);
+        packNucleus(1, 0, SCALE.PROTON_RADIUS);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 2.0, [0, 0, 0]);
     } else if (type === 'deuterium') {
-        packNucleus(1, 1, 0.1);
-        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 1.8, [Math.PI/4, 0, 0]);
+        packNucleus(1, 1, SCALE.PROTON_RADIUS);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 1.8, [Math.PI/4, 0, 0]);
     } else if (type === 'water') {
         // Central Oxygen 16 (8p, 8n)
-        packNucleus(8, 8, 1.0);
+        packNucleus(8, 8, SCALE.PROTON_RADIUS);
 
         // Hydrogen Bonds (1p each at 104.5 degrees)
         // Distance is ~95.84 pm = 95,840 fm
@@ -882,16 +987,16 @@ window.switchPhenomenon = (type) => {
         }
 
     } else if (type === 'gold') {
-        const core = packNucleus(79, 118, 0.1);
+        const core = packNucleus(79, 118, SCALE.PROTON_RADIUS);
         // Emphasizing the relativistic v = 0.58c speed of the inner 1s shell.
         // Speeds decay outward (v = Z*alpha*c / n).
         const shells = [
-            { n: 2,  r: 12,  s: 5.8 },  // 1s shell (Highly relativistic)
-            { n: 8,  r: 22,  s: 2.9 },  // 2s, 2p
-            { n: 18, r: 35,  s: 1.9 },  // 3s, 3p, 3d
-            { n: 32, r: 50, s: 1.45 }, // 4s, 4p, 4d, 4f
-            { n: 18, r: 68, s: 1.16 }, // 5s, 5p, 5d
-            { n: 1,  r: 85, s: 0.96 }  // 6s (Valence)
+            { n: 2,  r: SCALE.BOHR_RADIUS * 0.2,  s: 5.8 },  // 1s shell (Highly relativistic)
+            { n: 8,  r: SCALE.BOHR_RADIUS * 0.4,  s: 2.9 },  // 2s, 2p
+            { n: 18, r: SCALE.BOHR_RADIUS * 0.6,  s: 1.9 },  // 3s, 3p, 3d
+            { n: 32, r: SCALE.BOHR_RADIUS * 0.8, s: 1.45 }, // 4s, 4p, 4d, 4f
+            { n: 18, r: SCALE.BOHR_RADIUS * 1.0, s: 1.16 }, // 5s, 5p, 5d
+            { n: 1,  r: SCALE.BOHR_RADIUS * 1.2, s: 0.96 }  // 6s (Valence)
         ];
         shells.forEach(shell => {
             for(let i=0; i<shell.n; i++) {
@@ -956,7 +1061,7 @@ window.switchPhenomenon = (type) => {
         currentMeshes.push(bh);
 
         // Show a crushed nuclear lattice inside the event horizon
-        const crushedCore = packNucleus(20, 20, SCALE.PROTON_RADIUS * 0.1);
+        const crushedCore = packNucleus(20, 20, SCALE.PROTON_RADIUS);
         crushedCore.scale.set(0.5, 0.5, 0.5); // Pack them very tightly
         // Note: packNucleus already adds to scene and currentMeshes.
 
@@ -990,12 +1095,12 @@ window.switchPhenomenon = (type) => {
         const n = parseInt(inputN.value) || 0;
         const e = parseInt(inputE.value) || 1;
 
-        packNucleus(z, n, 0.1);
+        packNucleus(z, n, SCALE.PROTON_RADIUS);
 
         // Custom Mode: Dynamic electrons with real-time repulsion to form natural shells
         for(let i=0; i<e; i++) {
             // Spawn electrons at randomized somewhat close distances, they will push each other away
-            const initialRadius = 15 + Math.random() * 10;
+            const initialRadius = SCALE.BOHR_RADIUS + (Math.random() - 0.5) * SCALE.BOHR_RADIUS * 0.5;
             const initialSpeed = 10.0;
             addOrbitingElectron(new THREE.Vector3(0,0,0), initialRadius, initialSpeed, [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2], true);
         }
