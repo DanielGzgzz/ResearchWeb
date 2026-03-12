@@ -20,124 +20,103 @@ const tourSteps = [
         title: '1. The Casimir Vacuum Fluid',
         desc: 'The baseline simulation environment is a hyper-elastic, zero-point tensor fluid. Electromagnetic waves displace this vacuum. (1 Unit = 1 Femtometer)',
         math: [
-            { label: 'Kinematic Action Viscosity', expr: 'h = 6.62607 \\times 10^{-34} \\text{ kg}\\cdot\\text{m}^2/\\text{s}' },
+            { label: 'Kinematic Action Viscosity', expr: 'h = 6.62607 \times 10^{-34} \text{ kg}\\cdot\\text{m}^2/\\text{s}' },
             { label: 'Gravitation (Casimir Pressure Gradient)', expr: 'G = \\frac{P_{vac}\\sigma^{2}}{4\\pi m_{p}^{2}}' }
         ],
         features: ['Zero-point tensor fluid', 'Geons displace vacuum', 'Geometric shadowing causes gravity'],
         cameraPos: { x: 0, y: 0, z: 1000 },
     },
     {
-        id: 'electron',
-        title: '2. Leptonic Architecture: The Electron',
-        desc: 'Leptons are constructed from a continuous 1D circularly polarized photon track trapped in a stable quantum orbit. The 4π topological twist generates a macroscopic negative monopole and intrinsic spin-1/2.',
+        id: 'em_linear',
+        title: '2. EM Waves: Linear & Polarized',
+        desc: 'Linear and polarized electromagnetic waves propagating through the vacuum. Rectangular cross-sections represent the orthogonal points of amplitude of E and B fields.',
         math: [
-            { label: 'Compton Wavelength Confinement', expr: '4\\pi r = \\lambda_c' },
-            { label: 'Structural Radius', expr: 'r = \\frac{\\hbar}{2m_e c} = 193.0796 \\text{ fm}' },
-            { label: 'Casimir Confinement Pressure', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2} \\equiv \\frac{m_e c^2}{r}' },
+            { label: 'Linear Propagation', expr: 'E(x,t) = E_0 \\sin(kx - \\omega t)' }
         ],
-        features: ['4π (720°) twisted Möbius double-loop', 'Macroscopically massive boundary (193 fm radius)', 'Explains Dirac g=2 anomaly geometrically'],
+        features: ['Orthogonal Electric/Magnetic vectors', 'Pure linear propagation', 'Amplitude visualization'],
+        cameraPos: { x: 0, y: 0, z: 200 },
+    },
+    {
+        id: 'em_circular',
+        title: '3. EM Waves: Circular & Elliptical',
+        desc: 'Circularly and elliptically polarized electromagnetic waves where the amplitude cubes rotate around the propagation axis, effectively mapping a continuous Möbius trajectory.',
+        math: [
+            { label: 'Circular Twist', expr: 'E(z,t) = E_0 (\\cos(kz-\\omega t)\\hat{x} + \\sin(kz-\\omega t)\\hat{y})' }
+        ],
+        features: ['Rotating rectangular amplitudes', 'Helical spatial projection', 'Möbius loop phase completion'],
+        cameraPos: { x: 0, y: 0, z: 200 },
+    },
+    {
+        id: 'leptons',
+        title: '4. Leptons: Electron & Positron',
+        desc: 'The electron is a circularly polarized wave trapped in a stable quantum orbit. Its inverse geometric chirality forms the Positron.',
+        math: [
+            { label: 'Structural Radius', expr: 'r = \\frac{\\hbar}{2m_e c} = 193.0796 \\text{ fm}' },
+            { label: 'Casimir Confinement', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2}' }
+        ],
+        features: ['4π (720°) Möbius double-loop', 'Macroscopic 193 fm radius', 'Anti-matter chirality inversion'],
         cameraPos: { x: 0, y: 0, z: 1000 },
     },
     {
-        id: 'proton',
-        title: '3. Hadronic Architecture: The Proton',
-        desc: 'Nucleons require a 3D architecture to distribute angular momentum. Compressed by 178,700 N of vacuum pressure, the resulting Trefoil knot is physically ~230x smaller than the electron orbit.',
+        id: 'hadrons',
+        title: '5. Hadrons: Proton, Neutron & Antimatter',
+        desc: 'Nucleons distribute angular momentum in 3D using a compressed Trefoil knot (0.84 fm). Neutrons are phase-shifted variants. Antimatter inverts the knot chirality.',
         math: [
             { label: 'Resting Radius', expr: 'R_p = \\frac{4\\hbar}{m_p c} = 0.8412 \\text{ fm}' },
-            { label: 'Inward Vacuum Pressure', expr: 'F_{vac} = \\frac{4\\hbar c}{R_p^2}' },
+            { label: 'Inward Vacuum Pressure', expr: '178,700 \\text{ N}' }
         ],
-        features: ['(3,2)-Torus knot (Trefoil knot)', 'Sub-femtometer density (0.84 fm radius)', 'Integrates to +1e via two outward twists (+2/3e) and one inward (-1/3e)'],
-        cameraPos: { x: 0, y: 0, z: 1.5 },
+        features: ['(3,2)-Torus knot (Trefoil)', 'Sub-femtometer density', 'Geometric +1e derivation via twists'],
+        cameraPos: { x: 0, y: 0, z: 3.5 },
     },
     {
         id: 'hydrogen',
-        title: '4. The Hydrogen Atom (Protium)',
-        desc: 'A tiny, dense 0.84 fm proton anchoring an enormous 193 fm electron at a massive distance. The Bohr radius (a0) is ~52,900 fm. This is the true, staggering geometric scale.',
+        title: '6. Atoms: Hydrogen',
+        desc: 'A tiny 0.84 fm proton anchoring a 193 fm electron. Bohr radius is ~52,900 fm. Showcases massive orbital scale and Coulomb attraction.',
         math: [
-            { label: 'Gravitational Shadowing', expr: 'G = \\frac{P_{vac}\\sigma^{2}}{4\\pi m_{p}^{2}}' },
+            { label: 'Bohr Orbit', expr: 'a_0 \\approx 52,900 \\text{ fm}' }
         ],
-        features: ['Central dense Trefoil knot (0.84 fm core)', '1 massive-scale orbiting Möbius loop (193 fm)', '52,900 fm physical orbit'],
+        features: ['Proton core', 'Dynamic orbiting electron', 'Relativistic kinematics'],
         cameraPos: { x: 0, y: 0, z: 120000 },
     },
     {
         id: 'deuterium',
-        title: '5. Deuterium Atom (Heavy Hydrogen)',
-        desc: 'A proton and neutron tightly bound via intersecting geometric repulsions at ~2 fm separation, forming an FCC lattice core. The neutron is structurally identical but phase-shifted.',
+        title: '7. Atoms: Deuterium',
+        desc: 'Proton and Neutron tightly bound in an FCC lattice at 2.2 fm. Electron orbits externally.',
         math: [
-            { label: 'Nuclear Boundary Repulsion', expr: 'k \\approx 212,600 \\text{ N/fm}' },
+            { label: 'Nuclear Boundary Repulsion', expr: 'k \\approx 212,600 \\text{ N/fm}' }
         ],
-        features: ['1 Proton / 1 Neutron dual-core (2.2 fm spacing)', 'Independent 3D hadron orientations', '52,900 fm physical orbit'],
+        features: ['Proton/Neutron dual-core', 'Phase-shifted topologies', '52,900 fm physical orbit'],
         cameraPos: { x: 0, y: 0, z: 120000 },
     },
     {
         id: 'water',
-        title: '6. Water Molecule (H₂O) & Polarization',
-        desc: 'Two hydrogen cores bound at ~95,840 fm distance to an Oxygen core at exactly 104.5°. 10 massive electrons repel each other dynamically in real-time across vast empty space.',
+        title: '8. Atoms: Water Molecule (H₂O)',
+        desc: 'Two hydrogen cores bound dynamically to an Oxygen core. The hydrogens are physically free and interacting via Lorentz forces and EM repulsions.',
         math: [
-            { label: 'Refractive Delay', expr: 'n = \\frac{c}{v_m} = 1 + (N_v \\cdot c \\cdot \\sigma \\cdot \\Delta t)' }
+            { label: 'Lorentz Force', expr: 'F = q(E + v \\times B)' }
         ],
-        features: ['Oxygen-16 core (8p, 8n)', '2 Protons strictly bonded at 104.5° (95,840 fm)', '10 dynamically repelling Electrons (Real-time n-body)'],
+        features: ['Dynamic unbound hydrogens', 'Real-time n-body attracting & repelling', 'Free camera observation'],
         cameraPos: { x: 0, y: 0, z: 250000 },
     },
     {
         id: 'gold',
-        title: '7. The Gold Atom (Au) & Probability Clouds',
-        desc: 'A massive Casimir well of 197 packed nucleons (radius ~6 fm). 79 macroscopically massive electrons (193 fm each) repel one another in complex shells spanning hundreds of thousands of femtometers.',
+        title: '9. Atoms: Gold',
+        desc: 'A massive Casimir well of 197 packed nucleons (radius ~6 fm). 79 massive electrons dynamically repel in high-density Schrödinger probability clouds.',
         math: [
-            { label: 'Relativistic Absorption Shift', expr: '\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}' }
+            { label: 'Relativistic Shell Compression', expr: '\\gamma = \\frac{1}{\\sqrt{1 - (Z\\alpha)^2}}' }
         ],
-        features: ['79 Protons / 118 Neutrons packed (197 nucleons, 6 fm)', '79 massive repelling electrons', 'High relativistic velocities in deeply bound shells'],
+        features: ['Dense FCC packed core', 'Schrödinger probability trails', 'High relativistic velocities'],
         cameraPos: { x: 0, y: 0, z: 800000 },
-    },
-    {
-        id: 'annihilation',
-        title: '8. Positron-Electron Annihilation',
-        desc: 'An electron meets its geometric inverse. Their mirrored chiralities cause absolute destructive interference upon collision, shattering the vacuum lock and unspooling into gamma radiation.',
-        math: [
-            { label: 'Annihilation Threshold', expr: 'E_{crit} = 1.02199 \\text{ MeV}' },
-        ],
-        features: ['Electron (Twist +2)', 'Positron (Twist -2)', 'Unspools into pure linear photons upon impact'],
-        cameraPos: { x: 0, y: 0, z: 3000 },
-    },
-    {
-        id: 'gravity',
-        title: '9. Casimir Gravity & Tidal Locking',
-        desc: 'Gravity is not curved space; it is the Casimir pressure gradient formed by geometric shadowing. When two macroscopic bodies overlap shadows, the vacuum pushes them together. Close proximity induces tidal locking (face-to-face alignment) of their internal topologies.',
-        math: [
-            { label: 'Gravitational Force', expr: 'F_g = \\frac{G m_1 m_2}{r^2}' }
-        ],
-        features: ['Massive Body 1 (Earth analog)', 'Massive Body 2 (Moon analog)', 'Tidally locked orbiting topologies'],
-        cameraPos: { x: 0, y: 0, z: 150000000 },
     },
     {
         id: 'custom',
         title: '10. Custom Atomic Builder',
-        desc: 'Input true nucleon counts. The engine geometrically packs the sub-femtometer core and generates valence shells where massive electrons organically form orbits via n-body Coulombic repulsion.',
+        desc: 'Input true nucleon counts. The engine packs the core and spawns electrons that form organic shells via n-body Coulombic repulsion.',
         math: [
-            { label: 'Nuclear Core Packing Volume', expr: 'V = \\frac{4}{3}\\pi (R_p \\sqrt[3]{A})^3' }
+            { label: 'Core Packing Volume', expr: 'V = \\frac{4}{3}\\pi (R_p \\sqrt[3]{A})^3' }
         ],
-        features: ['Sub-femtometer FCC Core Builder', 'Real-time massive electron Coulombic repulsion', 'Dynamic physical scale rendering'],
+        features: ['Sub-femtometer FCC Core Builder', 'Real-time electron shells', 'Dynamic physical scaling'],
         cameraPos: { x: 0, y: 0, z: 200000 },
-    },
-    {
-        id: 'quasar',
-        title: '11. The Gezin Radius & Quasar Emission',
-        desc: 'A shadow cannot exceed 100% opacity. The absolute boundary of gravitational collapse occurs at the Gezin Radius. Mass exceeding this limit crushes into a "Super-Neutron" and phase-annihilates, violently ejecting continuous gamma radiation jets (Quasars).',
-        math: [
-            { label: 'The Gezin Radius', expr: 'R_{gezin} = R_p \\sqrt[3]{\\frac{M}{m_p}}' }
-        ],
-        features: ['Super-massive collapsed core', 'Matter accretion disk', 'Bi-polar linear gamma radiation jets (Quasar)'],
-        cameraPos: { x: 0, y: 200, z: 200000 },
-    },
-    {
-        id: 'scattering',
-        title: '12. Electron Light-by-Light Scattering',
-        desc: 'Because electrons are entirely composed of trapped light, scattering an electron is fundamentally a light-by-light interaction. An incoming linear photon collides, geometrically deflecting both bodies.',
-        math: [
-            { label: 'Compton Scattering Shift', expr: '\\Delta\\lambda = \\frac{h}{m_e c}(1 - \\cos\\theta)' }
-        ],
-        features: ['Target Geon (193 fm Electron)', 'Incoming Linear Photon (Gamma/X-ray)', 'Geometric Momentum Transfer Deflection'],
-        cameraPos: { x: 0, y: 0, z: 1500 },
     }
 ];
 
@@ -337,25 +316,20 @@ let time = 0;
 let annihilated = false;
 
 // Function to generate discrete square sections (bricks) along a curve
-function createVectorBricksGeometry(curve, segments, radius, closed=true, expansionRate=0.0) {
+function createVectorBricksGeometry(curve, segments, radius, closed=true, expansionRate=0.0, isCircular=false) {
     const geom = new THREE.BufferGeometry();
     const positions = [];
     const normals = [];
     const uvs = [];
-    const indices = [];
 
     // Extract evenly spaced points and their mathematical frames
     const points = curve.getSpacedPoints(segments);
     const frames = curve.computeFrenetFrames(segments, closed);
 
-    // Each segment gets a thin square block representing the local E and B vector plane
-    let vertexOffset = 0;
-
     for (let i = 0; i < segments; i++) {
         const pt = points[i];
         let nextPt;
         if (!closed && i === segments - 1) {
-            // For unclosed curves, the last segment shouldn't wrap to 0. Use previous segment length.
             nextPt = pt.clone().add(pt.clone().sub(points[i-1]));
         } else {
             nextPt = points[(i + 1) % segments];
@@ -364,30 +338,46 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
         const T = frames.tangents[i];
 
         // Inverse Square / Spherical Dilation Effect:
-        // As the wave propagates (i), if expansionRate > 0, the radius of the wave scales outwards.
-        // For linear photons, this represents lower energy waves losing focus.
         const currentRadius = radius + (i * expansionRate);
 
+        let N = frames.normals[i].clone().normalize();
+        let B_vec = frames.binormals[i].clone().normalize();
+
+        if (isCircular) {
+            // Physically twist the vectors around the tangent for circular polarization
+            const phase = (i / segments) * Math.PI * 8.0; // 4 full rotations
+            const cosP = Math.cos(phase);
+            const sinP = Math.sin(phase);
+
+            // Rotate N and B_vec around T
+            const newN = new THREE.Vector3().addScaledVector(N, cosP).addScaledVector(B_vec, sinP).normalize();
+            const newB = new THREE.Vector3().crossVectors(T, newN).normalize();
+            N = newN;
+            B_vec = newB;
+        }
+
         // Treat mathematically as E (Normal) and B (Binormal) vectors
-        const E = frames.normals[i].clone().normalize().multiplyScalar(currentRadius);
-        const B = frames.binormals[i].clone().normalize().multiplyScalar(currentRadius);
+        // For linear polarized, we want rectangular cross-sections (wide E, thin B to represent amplitude points)
+        // If circular, we want them perfectly equal (squares) since amplitude rotates equally
+
+        const E_mag = isCircular ? currentRadius * 1.5 : currentRadius * 2.0;
+        const B_mag = isCircular ? currentRadius * 1.5 : currentRadius * 0.2; // Thin in B direction for linear
+
+        const E = N.multiplyScalar(E_mag);
+        const B = B_vec.multiplyScalar(B_mag);
 
         // Create a thin brick (slice) centered at pt, thickness based on segment length
         const segmentLength = pt.distanceTo(nextPt);
         const halfThick = T.clone().multiplyScalar(segmentLength * 0.4); // 80% coverage, 20% gap
 
-        // Increase visual size of B and E vectors slightly for better visibility
-        const E_vis = E.clone().multiplyScalar(1.5);
-        const B_vis = B.clone().multiplyScalar(1.5);
-
-        const c0 = pt.clone().add(E_vis).add(B_vis).sub(halfThick); // +E, +B, Back
-        const c1 = pt.clone().sub(E_vis).add(B_vis).sub(halfThick); // -E, +B, Back
-        const c2 = pt.clone().sub(E_vis).sub(B_vis).sub(halfThick); // -E, -B, Back
-        const c3 = pt.clone().add(E_vis).sub(B_vis).sub(halfThick); // +E, -B, Back
-        const c4 = pt.clone().add(E_vis).add(B_vis).add(halfThick); // +E, +B, Front
-        const c5 = pt.clone().sub(E_vis).add(B_vis).add(halfThick); // -E, +B, Front
-        const c6 = pt.clone().sub(E_vis).sub(B_vis).add(halfThick); // -E, -B, Front
-        const c7 = pt.clone().add(E_vis).sub(B_vis).add(halfThick); // +E, -B, Front
+        const c0 = pt.clone().add(E).add(B).sub(halfThick); // +E, +B, Back
+        const c1 = pt.clone().sub(E).add(B).sub(halfThick); // -E, +B, Back
+        const c2 = pt.clone().sub(E).sub(B).sub(halfThick); // -E, -B, Back
+        const c3 = pt.clone().add(E).sub(B).sub(halfThick); // +E, -B, Back
+        const c4 = pt.clone().add(E).add(B).add(halfThick); // +E, +B, Front
+        const c5 = pt.clone().sub(E).add(B).add(halfThick); // -E, +B, Front
+        const c6 = pt.clone().sub(E).sub(B).add(halfThick); // -E, -B, Front
+        const c7 = pt.clone().add(E).sub(B).add(halfThick); // +E, -B, Front
 
         const u = i / segments;
 
@@ -401,38 +391,22 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
             uvs.push(u, uvY, u, uvY, u, uvY);
         }
 
-        const normE = E.clone().normalize();
-        const normB = B.clone().normalize();
+        const normE = N.clone().normalize();
+        const normB = B_vec.clone().normalize();
         const normT = T.clone().normalize();
 
-        // The shader reads vUv.y to determine the azimuthal angle theta around the tube:
-        // theta = vUv.y * 2.0 * PI
-        // E field phase oscillates via sin(theta) -> peak at theta=PI/2 (vUv.y=0.25) and 3PI/2 (vUv.y=0.75)
-        // B field phase oscillates via cos(theta) -> peak at theta=0 (vUv.y=0.0) and PI (vUv.y=0.5)
-
-        // Top face (+E direction) -> E peaks here, B is 0. Map to vUv.y = 0.25
-        addQuad(c0.toArray(), c3.toArray(), c7.toArray(), c4.toArray(), normE.toArray(), 0.25);
-
-        // Bottom face (-E direction) -> E peaks here, B is 0. Map to vUv.y = 0.75
-        addQuad(c1.toArray(), c2.toArray(), c6.toArray(), c5.toArray(), normE.clone().negate().toArray(), 0.75);
-
-        // Right face (+B direction) -> B peaks here, E is 0. Map to vUv.y = 0.0
-        addQuad(c0.toArray(), c1.toArray(), c5.toArray(), c4.toArray(), normB.toArray(), 0.0);
-
-        // Left face (-B direction) -> B peaks here, E is 0. Map to vUv.y = 0.5
-        addQuad(c3.toArray(), c7.toArray(), c6.toArray(), c2.toArray(), normB.clone().negate().toArray(), 0.5);
-
-        // Back face (-T direction) -> Cap
-        addQuad(c0.toArray(), c3.toArray(), c2.toArray(), c1.toArray(), normT.clone().negate().toArray(), 0.0);
-
-        // Front face (+T direction) -> Cap
-        addQuad(c4.toArray(), c5.toArray(), c6.toArray(), c7.toArray(), normT.toArray(), 0.0);
+        // Map faces to Shader E/B color coordinates
+        addQuad(c0.toArray(), c3.toArray(), c7.toArray(), c4.toArray(), normE.toArray(), 0.25); // Top (+E)
+        addQuad(c1.toArray(), c2.toArray(), c6.toArray(), c5.toArray(), normE.clone().negate().toArray(), 0.75); // Bottom (-E)
+        addQuad(c0.toArray(), c1.toArray(), c5.toArray(), c4.toArray(), normB.toArray(), 0.0); // Right (+B)
+        addQuad(c3.toArray(), c7.toArray(), c6.toArray(), c2.toArray(), normB.clone().negate().toArray(), 0.5); // Left (-B)
+        addQuad(c0.toArray(), c3.toArray(), c2.toArray(), c1.toArray(), normT.clone().negate().toArray(), 0.0); // Back
+        addQuad(c4.toArray(), c5.toArray(), c6.toArray(), c7.toArray(), normT.toArray(), 0.0); // Front
     }
 
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    // Not using shared vertices/indices anymore so each face can have discrete UVs & flat normals
     geom.computeBoundingSphere();
 
     return geom;
@@ -476,7 +450,7 @@ function createWaveMaterial() {
         color: 0x00ffff,
         linewidth: 2,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.3
     });
 }
 
@@ -588,7 +562,7 @@ function renderVacuumFluid() {
     renderLinearPhoton(6.0, 0.2, 0.05);
 }
 
-function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
+function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=false) {
     const curve = new LinearPhotonCurve(length);
 
     // In Light Mode, longer wavelengths disperse (spherical dilation P_exp).
@@ -597,7 +571,7 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
     const expansionRate = (SIM_STATE.lightMode) ? SIM_STATE.lightWavelength * 0.05 : 0.0;
 
     // Use the exact same discrete vector bricks as the particles
-    const geometry = createVectorBricksGeometry(curve, 100, amplitude, false, expansionRate);
+    const geometry = createVectorBricksGeometry(curve, 100, amplitude, false, expansionRate, isCircular);
 
     // For a linear photon to show spatial waves, the "twistFactor" becomes the number
     // of wavelengths that fit into the geometry.
@@ -648,17 +622,18 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
 
     // Create thick, additive probability cloud trail
     // We use a large number of overlapping soft points to simulate dense probability distributions over time.
-    const trailMax = 300;
+    const trailMax = 2000;
     const trailGeom = new THREE.BufferGeometry();
     const trailPositions = new Float32Array(trailMax * 3);
     trailGeom.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
 
     // Additive blending creates bright dense spots where the electron frequently visits
+    // Enhanced trail visibility as requested: larger size, higher opacity, longer tail.
     const trailMat = new THREE.PointsMaterial({
         color: 0x4488ff,
-        size: eRadius * 1.5, // Make it thick, enveloping the electron path
+        size: 6.0, sizeAttenuation: false, // Make it thick, enveloping the electron path
         transparent: true,
-        opacity: 0.05, // Very low opacity per point so they build up slowly
+        opacity: 0.3, // Higher opacity to stand out as probability clouds
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
@@ -929,19 +904,29 @@ window.switchPhenomenon = (type) => {
     if (type === 'custom') atomBuilderUI.classList.remove('hidden');
     else atomBuilderUI.classList.add('hidden');
 
-    if (SIM_STATE.lightMode) {
-        // OVERRIDE: If Light Mode is on, just show raw light waves
-        // Make it huge (length 100, amplitude 10) so the expansion is very obvious
-        renderLinearPhoton(100, 10, [-50, 0, 0]);
-        return;
-    }
-
     if (type === 'vacuum') {
         renderVacuumFluid();
-    } else if (type === 'electron') {
-        renderElectron(4.0, 0.4);
-    } else if (type === 'proton') {
-        renderProton(0.2, 0.05);
+    } else if (type === 'em_linear') {
+        // EM Waves: Linear & Polarized
+        renderLinearPhoton(100, 10, [-50, 0, 0], false);
+    } else if (type === 'em_circular') {
+        // EM Waves: Circular & Elliptical
+        renderLinearPhoton(100, 10, [-50, 0, 0], true);
+    } else if (type === 'leptons') {
+        const eRadius = SCALE.ELECTRON_RADIUS;
+        // Electron (Left)
+        renderElectron(eRadius, eRadius * 0.1, [-eRadius * 2.5, 0, 0], 1, 2.0);
+        // Positron (Right, flipped chirality)
+        renderElectron(eRadius, eRadius * 0.1, [eRadius * 2.5, 0, 0], -1, 2.0);
+    } else if (type === 'hadrons') {
+        // Proton (Left)
+        renderProton(0.2, 0.05, [-1, 0, 0], false);
+        // Neutron (Center)
+        renderProton(0.2, 0.05, [0, 0, 0], true);
+        // Anti-Proton (Right)
+        const ap = renderProton(0.2, 0.05, [1, 0, 0], false);
+        ap.userData.rotationSpeed.y *= -1; // Flip chirality for antimatter
+
     } else if (type === 'hydrogen') {
         packNucleus(1, 0, SCALE.PROTON_RADIUS);
         addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 2.0, [0, 0, 0]);
@@ -952,142 +937,41 @@ window.switchPhenomenon = (type) => {
         // Central Oxygen 16 (8p, 8n)
         packNucleus(8, 8, SCALE.PROTON_RADIUS);
 
-        // Hydrogen Bonds (1p each at 104.5 degrees)
-        // Distance is ~95.84 pm = 95,840 fm
+        // Dynamic unbounded hydrogens
         const bondLength = SCALE.WATER_BOND;
         const halfAngle = (104.5 / 2) * Math.PI / 180;
 
-        const h1 = packNucleus(1, 0, 1.0);
+        // Spawn 10 dynamic electrons
+        for(let i=0; i<10; i++) {
+            addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS * 1.5, 12.0, [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI], true);
+        }
+
+        // Spawn Dynamic Hydrogens as pseudo orbiters but massive
+        const h1 = packNucleus(1, 0, SCALE.PROTON_RADIUS);
         h1.position.set(Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
+        h1.userData = { isDynamicNucleus: true, charge: 1, velocity: new THREE.Vector3(0, 0, 0), mass: 1836 };
 
-        const h2 = packNucleus(1, 0, 1.0);
+
+        const h2 = packNucleus(1, 0, SCALE.PROTON_RADIUS);
         h2.position.set(-Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
+        h2.userData = { isDynamicNucleus: true, charge: 1, velocity: new THREE.Vector3(0, 0, 0), mass: 1836 };
 
-        // Add Cartesian system to show length
-        const mat = new THREE.LineBasicMaterial({color: 0xaaaaaa, transparent: true, opacity: 0.5});
-        const geo1 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), h1.position]);
-        const geo2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), h2.position]);
-        const geo3 = new THREE.BufferGeometry().setFromPoints([h1.position, h2.position]);
-        const line1 = new THREE.Line(geo1, mat);
-        const line2 = new THREE.Line(geo2, mat);
-        const line3 = new THREE.Line(geo3, new THREE.LineBasicMaterial({color: 0x88ff88, transparent: true, opacity: 0.5}));
-        scene.add(line1, line2, line3);
-        currentMeshes.push(line1, line2, line3);
-
-        // 10 Electrons total
-        // Inner O shell (2 electrons)
-        for(let i=0; i<2; i++) {
-            addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS * 0.2, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0], true);
-        }
-
-        // Outer valence shell dynamically stabilizing
-        const sharedCenter = new THREE.Vector3(0, -bondLength * 0.3, 0);
-        for(let i=0; i<8; i++) {
-            addOrbitingElectron(sharedCenter, SCALE.BOHR_RADIUS * 1.5, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0], true);
-        }
 
     } else if (type === 'gold') {
-        const core = packNucleus(79, 118, SCALE.PROTON_RADIUS);
-        // Emphasizing the relativistic v = 0.58c speed of the inner 1s shell.
-        // Speeds decay outward (v = Z*alpha*c / n).
-        const shells = [
-            { n: 2,  r: SCALE.BOHR_RADIUS * 0.2,  s: 5.8 },  // 1s shell (Highly relativistic)
-            { n: 8,  r: SCALE.BOHR_RADIUS * 0.4,  s: 2.9 },  // 2s, 2p
-            { n: 18, r: SCALE.BOHR_RADIUS * 0.6,  s: 1.9 },  // 3s, 3p, 3d
-            { n: 32, r: SCALE.BOHR_RADIUS * 0.8, s: 1.45 }, // 4s, 4p, 4d, 4f
-            { n: 18, r: SCALE.BOHR_RADIUS * 1.0, s: 1.16 }, // 5s, 5p, 5d
-            { n: 1,  r: SCALE.BOHR_RADIUS * 1.2, s: 0.96 }  // 6s (Valence)
-        ];
-        shells.forEach(shell => {
-            for(let i=0; i<shell.n; i++) {
-                addOrbitingElectron(new THREE.Vector3(0,0,0), shell.r + (Math.random()-0.5)*3, shell.s + (Math.random()*0.2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
-            }
-        });
+        // Gold 197 (79 protons, 118 neutrons)
+        packNucleus(79, 118, SCALE.PROTON_RADIUS * 0.5);
 
-    } else if (type === 'annihilation') {
-        // Create an electron and a positron orbiting a common center (Positronium)
-        // Set dynamic state initially to false, wait for collision, then unspool.
-        const orbitRadius = SCALE.ELECTRON_RADIUS * 10;
+        // Generate relativistic electron shells
+        for(let i=0; i<2; i++) {
+            addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS * 0.1, 40.0, [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI], true);
+        }
 
-        // Electron
-        const e1 = renderElectron(SCALE.ELECTRON_RADIUS, SCALE.ELECTRON_TUBE, [-orbitRadius, 0, 0]);
-        e1.userData.velocity = [0, 0, 0];
-        e1.userData.isPositronium = true;
-        e1.userData.angle = Math.PI;
-        e1.userData.orbitRadius = orbitRadius;
-
-        // Positron
-        const e2 = renderElectron(SCALE.ELECTRON_RADIUS, SCALE.ELECTRON_TUBE, [orbitRadius, 0, 0], true);
-        e2.userData.velocity = [0, 0, 0];
-        e2.userData.isPositronium = true;
-        e2.userData.angle = 0;
-        e2.userData.orbitRadius = orbitRadius;
-
-    } else if (type === 'gravity') {
-        // Earth and Moon analog using simple macroscopic spheres
-        const earthGeom = new THREE.SphereGeometry(15, 32, 32);
-        const earthMat = new THREE.MeshPhongMaterial({ color: 0x1e3a8a, wireframe: SIM_STATE.wireframe });
-        const earth = new THREE.Mesh(earthGeom, earthMat);
-        scene.add(earth);
-        currentMeshes.push(earth);
-
-        const moonGeom = new THREE.SphereGeometry(4, 32, 32);
-        const moonMat = new THREE.MeshPhongMaterial({ color: 0x64748b, wireframe: SIM_STATE.wireframe });
-        const moon = new THREE.Mesh(moonGeom, moonMat);
-
-        // Setup tidal locking rotation group
-        const orbitGroup = new THREE.Group();
-        moon.position.set(40, 0, 0);
-
-        // Add a visible marker to the moon to easily see the tidal lock (face always points at earth)
-        const craterGeom = new THREE.SphereGeometry(1, 16, 16);
-        const craterMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
-        const crater = new THREE.Mesh(craterGeom, craterMat);
-        crater.position.set(-4, 0, 0); // pointing inward toward Earth origin
-        moon.add(crater);
-
-        orbitGroup.add(moon);
-        orbitGroup.userData = { type: 'tidal_moon', rotationSpeed: { x: 0, y: 0.5, z: 0 } };
-        scene.add(orbitGroup);
-        currentMeshes.push(orbitGroup);
-
-    } else if (type === 'quasar') {
-        // Central Black Hole / Super-Neutron
-        const qScale = SCALE.BOHR_RADIUS * 2; // Making the quasar visually scaled relative to atomic scale
-        const coreGeom = new THREE.SphereGeometry(qScale * 0.05, 32, 32);
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.85 }); // Slightly transparent to see crushing core
-        const bh = new THREE.Mesh(coreGeom, coreMat);
-        scene.add(bh);
-        currentMeshes.push(bh);
-
-        // Show a crushed nuclear lattice inside the event horizon
-        const crushedCore = packNucleus(20, 20, SCALE.PROTON_RADIUS);
-        crushedCore.scale.set(0.5, 0.5, 0.5); // Pack them very tightly
-        // Note: packNucleus already adds to scene and currentMeshes.
-
-        // Accretion disk
-        const diskGeom = new THREE.RingGeometry(qScale * 0.08, qScale * 0.25, 64);
-        const diskMat = new THREE.MeshBasicMaterial({
-            color: 0xffaa00,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.8,
-            wireframe: SIM_STATE.wireframe
-        });
-        const disk = new THREE.Mesh(diskGeom, diskMat);
-        disk.rotation.x = Math.PI / 2;
-        disk.userData = { rotationSpeed: { x: 0, y: 0, z: -1.5 } }; // Fast rotation
-        scene.add(disk);
-        currentMeshes.push(disk);
-
-        // Bi-polar Gamma Ray Jets (Quasar emission)
-        // Adjust positions so they originate exactly from the poles of the black hole
-        const jet1 = renderLinearPhoton(100, 2, [0, 0, 0]);
-        jet1.rotation.z = Math.PI / 2; // Point UP (Y axis)
-
-        const jet2 = renderLinearPhoton(100, 2, [0, 0, 0]);
-        jet2.rotation.z = -Math.PI / 2; // Point DOWN (-Y axis)
-        jet2.rotation.x = Math.PI; // flip phase to mirror
+        // Outer shells dynamically populate
+        for(let i=0; i<77; i++) {
+            const shellDist = SCALE.BOHR_RADIUS * (1 + Math.random()*5);
+            const speed = 25.0 / (shellDist / SCALE.BOHR_RADIUS); // Speed drops off with distance
+            addOrbitingElectron(new THREE.Vector3(0,0,0), shellDist, speed, [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI], true);
+        }
 
     } else if (type === 'custom') {
         // Read custom builder values
@@ -1099,32 +983,14 @@ window.switchPhenomenon = (type) => {
 
         // Custom Mode: Dynamic electrons with real-time repulsion to form natural shells
         for(let i=0; i<e; i++) {
-            // Spawn electrons at randomized somewhat close distances, they will push each other away
             const initialRadius = SCALE.BOHR_RADIUS + (Math.random() - 0.5) * SCALE.BOHR_RADIUS * 0.5;
             const initialSpeed = 10.0;
             addOrbitingElectron(new THREE.Vector3(0,0,0), initialRadius, initialSpeed, [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2], true);
         }
 
-        // Set an attractive charge in the core equal to Z
-        scene.userData.coreCharge = z;
-    } else if (type === 'scattering') {
-        // Target Electron (Stationary but spinning its internal field)
-        const eRadius = SCALE.ELECTRON_RADIUS;
-        const eTube = SCALE.ELECTRON_TUBE;
-        const targetElectron = renderElectron(eRadius, eTube, [0, 0, 0]);
-
-        // Incoming Linear Photon (Gamma ray)
-        const photonStart = [-eRadius * 5, eRadius * 0.5, 0];
-        const photon = renderLinearPhoton(eRadius, eRadius * 0.2, photonStart);
-
-        // Setup scattering kinematics
-        photon.userData.isScatteringPhoton = true;
-        photon.userData.velocity = [eRadius * 2, 0, 0]; // Fast moving photon
-        photon.userData.target = targetElectron;
-        photon.userData.scattered = false;
-
-        targetElectron.userData.velocity = [0, 0, 0];
-        targetElectron.userData.isScatteredTarget = true;
+        currentOrbiters.forEach(orbiter => {
+            orbiter.coreCharge = z;
+        });
     }
 
     // Set wireframe state on freshly created materials
@@ -1293,8 +1159,58 @@ function animate() {
     const dt = rawDt * SIM_STATE.speed;
     time += dt;
 
+
+    // Process dynamic nuclei (Hydrogen protons in Water)
+    // Process dynamic nuclei (Hydrogen protons in Water)
+    const dynamicNuclei = currentMeshes.filter(m => m.userData.isDynamicNucleus);
+    if (dynamicNuclei.length > 0) {
+        // Simple N-body integration for nuclei
+        const repulsionConst = SCALE.WATER_BOND * 0.5; // Tuning factor for visual stability
+
+        dynamicNuclei.forEach(nuc => {
+            let force = new THREE.Vector3(0, 0, 0);
+
+            // Attracted to center (Oxygen)
+            const origin = new THREE.Vector3(0, 0, 0);
+            const distToCenter = nuc.position.distanceTo(origin);
+            const dirToCenter = new THREE.Vector3().subVectors(origin, nuc.position).normalize();
+
+            // EM Spring-like attraction to simulate bonding energy well
+            const bondDiff = distToCenter - SCALE.WATER_BOND;
+            force.add(dirToCenter.multiplyScalar(bondDiff * 0.05));
+
+            // Repel from other nuclei
+            dynamicNuclei.forEach(otherNuc => {
+                if (nuc !== otherNuc) {
+                    const dist = nuc.position.distanceTo(otherNuc.position);
+                    const dir = new THREE.Vector3().subVectors(nuc.position, otherNuc.position).normalize();
+                    const repulsion = (repulsionConst * repulsionConst) / (dist * dist + 0.1);
+                    force.add(dir.multiplyScalar(repulsion));
+                }
+            });
+
+            // Interaction with electrons (attraction)
+            currentOrbiters.forEach(orb => {
+                const dist = nuc.position.distanceTo(orb.mesh.position);
+                const dir = new THREE.Vector3().subVectors(orb.mesh.position, nuc.position).normalize();
+                const attraction = (repulsionConst * repulsionConst) / (dist * dist + 0.1) * 0.2; // Weak attraction
+                force.add(dir.multiplyScalar(attraction));
+            });
+
+            // Apply forces
+            nuc.userData.velocity.add(force.multiplyScalar(dt / nuc.userData.mass));
+
+            // Damping (simulating radiation resistance / binding limits)
+            nuc.userData.velocity.multiplyScalar(0.95);
+
+            // Update position
+            nuc.position.addScaledVector(nuc.userData.velocity, dt * 5000); // Scaled for visible speed
+        });
+    }
+
     currentMeshes.forEach(mesh => {
-        // Rotations
+
+        // Rotations        // Rotations
         if(mesh.userData.rotationSpeed) {
             mesh.rotation.x += mesh.userData.rotationSpeed.x * dt;
             mesh.rotation.y += mesh.userData.rotationSpeed.y * dt;
