@@ -176,46 +176,82 @@ varying vec2 vUv;
 varying vec3 vPosition;
 varying vec3 vNormal;
 
+// Helper function to continuously interpolate between 4 colors around a wheel
+vec3 getContinuousPhaseColor(float phase) {
+    // Normalize phase to 0 -> 4.0
+    float p = mod(phase, 6.28318530718) / 1.57079632679;
+
+    // Smoothstep for non-linear, punchy color transitions
+    float f = smoothstep(0.0, 1.0, fract(p));
+
+    if (p < 1.0) {
+        return mix(colorEPlus, colorBPlus, f);      // +E (Green) -> +B (Purple)
+    } else if (p < 2.0) {
+        return mix(colorBPlus, colorEMinus, f);     // +B (Purple) -> -E (Red)
+    } else if (p < 3.0) {
+        return mix(colorEMinus, colorBMinus, f);    // -E (Red) -> -B (Yellow)
+    } else {
+        return mix(colorBMinus, colorEPlus, f);     // -B (Yellow) -> +E (Green)
+    }
+}
+
 void main() {
-  // We use vUv.y to identify which face of the brick we are on:
-  // 0.25 = +E face, 0.75 = -E face, 0.0 = +B face, 0.5 = -B face, 0.1 = Ends
+    // vUv.y strictly defines the geometric face angle around the tube
+    // 0.25 = +E face (PI/2), 0.75 = -E face (3PI/2)
+    // 0.00 = +B face (0),    0.50 = -B face (PI)
+    float faceAngle = vUv.y * 6.28318530718;
 
-  // Propagate wave along the length of the tube (vUv.x) via uTime to simulate light speed
-  float propagation = uTime * 20.0;
-  float localPhase = vUv.x * uTwistFactor * 3.14159 * 2.0 - propagation;
+    // Propagate wave along the length of the tube (vUv.x) via uTime to simulate light speed
+    float propagation = uTime * 20.0;
 
-  vec3 baseColor;
+    // Combine structural twist, propagation, and the local face angle to get the absolute field phase
+    float localPhase = vUv.x * uTwistFactor * 6.28318530718 - propagation;
 
-  // Instead of blending, each face strictly maps to either the E or B field component
-  if (vUv.y > 0.15 && vUv.y < 0.35) {
-      // +E face (~0.25)
-      float amp = sin(localPhase);
-      baseColor = mix(colorEMinus, colorEPlus, (amp + 1.0) / 2.0);
-  } else if (vUv.y > 0.65 && vUv.y < 0.85) {
-      // -E face (~0.75)
-      // On the negative E face, the field vector is negated
-      float amp = sin(localPhase);
-      baseColor = mix(colorEMinus, colorEPlus, (amp + 1.0) / 2.0);
-  } else if (vUv.y > 0.4 && vUv.y < 0.6) {
-      // -B face (~0.5)
-      float amp = cos(localPhase);
-      baseColor = mix(colorBMinus, colorBPlus, (amp + 1.0) / 2.0);
-  } else {
-      // +B face (~0.0) or Ends
-      float amp = cos(localPhase);
-      baseColor = mix(colorBMinus, colorBPlus, (amp + 1.0) / 2.0);
-  }
+    // The continuous relative phase combines the longitudinal wave phase with the transverse face angle
+    float phi = localPhase + faceAngle;
 
-  vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
-  float diff = max(dot(vNormal, lightDir), 0.0);
-  float ambient = 0.3;
-  float glow = max(0.0, 1.0 - dot(vNormal, normalize(vec3(0, 0, 1)))) * 0.4;
+    vec3 baseColor = getContinuousPhaseColor(phi);
 
-  vec3 finalColor = baseColor * (diff * 0.7 + ambient) + baseColor * glow;
-  gl_FragColor = vec4(finalColor, 1.0);
+    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float ambient = 0.3;
+    float glow = max(0.0, 1.0 - dot(vNormal, normalize(vec3(0, 0, 1)))) * 0.4;
+
+    vec3 finalColor = baseColor * (diff * 0.7 + ambient) + baseColor * glow;
+    gl_FragColor = vec4(finalColor, 1.0);
 }`;
 
 // --- CURVES ---
+class LinearPhotonCurve extends THREE.Curve {
+    constructor(length) {
+        super();
+        this.length = length;
+    }
+    getPoint(t, optionalTarget = new THREE.Vector3()) {
+        // Photon travels along the X axis
+        return optionalTarget.set(t * this.length, 0, 0);
+    }
+
+    // Override computeFrenetFrames to provide a stable, non-rotating reference frame for a straight line
+    computeFrenetFrames(segments, closed) {
+        const tangents = [];
+        const normals = [];
+        const binormals = [];
+
+        for (let i = 0; i <= segments; i++) {
+            tangents.push(new THREE.Vector3(1, 0, 0));
+            // Rotate the normal by the user's polarization angle
+            const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
+            const n = new THREE.Vector3(0, Math.cos(polRad), Math.sin(polRad));
+            normals.push(n);
+            const b = new THREE.Vector3().crossVectors(tangents[i], n).normalize();
+            binormals.push(b);
+        }
+
+        return { tangents, normals, binormals };
+    }
+}
+
 class MobiusCurve extends THREE.Curve {
     constructor(radius, tubeRadius) {
         super();
@@ -287,7 +323,7 @@ let time = 0;
 let annihilated = false;
 
 // Function to generate discrete square sections (bricks) along a curve
-function createVectorBricksGeometry(curve, segments, radius, closed=true) {
+function createVectorBricksGeometry(curve, segments, radius, closed=true, expansionRate=0.0) {
     const geom = new THREE.BufferGeometry();
     const positions = [];
     const normals = [];
@@ -313,9 +349,14 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true) {
 
         const T = frames.tangents[i];
 
+        // Inverse Square / Spherical Dilation Effect:
+        // As the wave propagates (i), if expansionRate > 0, the radius of the wave scales outwards.
+        // For linear photons, this represents lower energy waves losing focus.
+        const currentRadius = radius + (i * expansionRate);
+
         // Treat mathematically as E (Normal) and B (Binormal) vectors
-        const E = frames.normals[i].clone().normalize().multiplyScalar(radius);
-        const B = frames.binormals[i].clone().normalize().multiplyScalar(radius);
+        const E = frames.normals[i].clone().normalize().multiplyScalar(currentRadius);
+        const B = frames.binormals[i].clone().normalize().multiplyScalar(currentRadius);
 
         // Create a thin brick (slice) centered at pt, thickness based on segment length
         const segmentLength = pt.distanceTo(nextPt);
@@ -466,26 +507,29 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
 }
 
 function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
-    const points = [];
-    // Only polarization (no circular twist)
-    const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
+    const curve = new LinearPhotonCurve(length);
 
-    for(let i=0; i<100; i++) {
-        let t = i/100 * length;
-        let wave = Math.sin(t * (1.0 / SIM_STATE.lightWavelength)) * amplitude;
+    // In Light Mode, longer wavelengths disperse (spherical dilation P_exp).
+    // Shorter wavelengths punch a tighter linear tunnel (high E Vacuum Crush).
+    // Here we map SIM_STATE.lightWavelength to the expansionRate.
+    const expansionRate = (SIM_STATE.lightMode) ? SIM_STATE.lightWavelength * 0.05 : 0.0;
 
-        let py = Math.cos(polRad) * wave;
-        let pz = Math.sin(polRad) * wave;
+    // Use the exact same discrete vector bricks as the particles
+    const geometry = createVectorBricksGeometry(curve, 100, amplitude, false, expansionRate);
 
-        points.push(new THREE.Vector3(t+pos[0], py+pos[1], pz+pos[2]));
-    }
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 3 });
-    const line = new THREE.Line(geometry, material);
-    line.userData = { type: 'linear_photon', length, amplitude, timeOffset: 0, origin: pos };
-    scene.add(line);
-    currentMeshes.push(line);
-    return line;
+    // For a linear photon to show spatial waves, the "twistFactor" becomes the number
+    // of wavelengths that fit into the geometry.
+    // 100 length / (SIM_STATE.lightWavelength * 10) gives a nice number of propagating waves
+    const waveFreq = 100.0 / (SIM_STATE.lightWavelength * 10.0);
+    const material = createGeonMaterial(waveFreq); // Re-purpose twist for spatial wave freq
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(...pos);
+    mesh.userData = { type: 'linear_photon', length, amplitude, origin: pos, curveType: 'linear' };
+
+    addFieldVectors(mesh, 'linear', { length, amplitude });
+    scene.add(mesh);
+    currentMeshes.push(mesh);
+    return mesh;
 }
 
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
@@ -782,7 +826,8 @@ window.switchPhenomenon = (type) => {
 
     if (SIM_STATE.lightMode) {
         // OVERRIDE: If Light Mode is on, just show raw light waves
-        renderLinearPhoton(30, 4, [-15, 0, 0]);
+        // Make it huge (length 100, amplitude 10) so the expansion is very obvious
+        renderLinearPhoton(100, 10, [-50, 0, 0]);
         return;
     }
 
@@ -1073,11 +1118,13 @@ chkLightMode.addEventListener('change', (e) => {
 inputPolarization.addEventListener('input', (e) => {
     SIM_STATE.lightPolarization = parseInt(e.target.value);
     valPolarization.textContent = SIM_STATE.lightPolarization + '°';
+    if(SIM_STATE.lightMode) window.switchPhenomenon(tourSteps[currentStepIndex].id);
 });
 
 inputWavelength.addEventListener('input', (e) => {
     SIM_STATE.lightWavelength = parseFloat(e.target.value);
     valWavelength.textContent = SIM_STATE.lightWavelength.toFixed(1);
+    if(SIM_STATE.lightMode) window.switchPhenomenon(tourSteps[currentStepIndex].id);
 });
 
 // INITIALIZATION
@@ -1100,6 +1147,7 @@ function updateFieldVectors(mesh, timeVal) {
     let curveObj;
     if (v.curveType === 'mobius') curveObj = new MobiusCurve(curveParams.radius, curveParams.tubeRadius);
     if (v.curveType === 'trefoil') curveObj = new TrefoilCurve(curveParams.radius, curveParams.tubeRadius);
+    if (v.curveType === 'linear') curveObj = new LinearPhotonCurve(curveParams.length);
 
     if(curveObj) {
         const point = curveObj.getPoint(v.t);
@@ -1112,7 +1160,9 @@ function updateFieldVectors(mesh, timeVal) {
         const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
 
         // Spin the E and B fields around the Poynting vector (tangent)
-        const twistRate = (v.curveType === 'mobius') ? 2 : 3;
+        let twistRate = 0;
+        if (v.curveType === 'mobius') twistRate = 2;
+        if (v.curveType === 'trefoil') twistRate = 3;
         const phase = v.t * Math.PI * 2 * twistRate + timeVal * 2;
 
         const eDir = new THREE.Vector3().addScaledVector(normal, Math.cos(phase)).addScaledVector(binormal, Math.sin(phase)).normalize();
@@ -1273,36 +1323,9 @@ function animate() {
             mesh.geometry.setFromPoints(points);
         }
 
-        // Linear EM Propagation Mode Editor
-        if(mesh.userData.type === 'linear_photon') {
-            mesh.userData.timeOffset += dt * 10;
-            const points = [];
-            const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
-            const pos = mesh.userData.origin;
-            for(let i=0; i<100; i++) {
-                let t = i/100 * mesh.userData.length;
-                let wavePhase = (t - mesh.userData.timeOffset) * (1.0 / SIM_STATE.lightWavelength);
-
-                // Inverse Square Expansion: Wave amplitude decreases as 1/r (Intensity ~ 1/r^2)
-                // Spatial expansion (spherical dilation) is simulated by widening the wave footprint proportionally to distance (t) and wavelength.
-                let attenuation = 1.0;
-                if (t > 0) {
-                    attenuation = 1.0 / (1.0 + t * 0.1);
-                }
-
-                // Low energy (longer wavelength) expands faster radially
-                let radialExpansion = (SIM_STATE.lightWavelength * 0.5) * t * 0.05;
-                let currentAmp = (mesh.userData.amplitude + radialExpansion) * attenuation;
-
-                let wave = Math.sin(wavePhase) * currentAmp;
-
-                let py = Math.cos(polRad) * wave;
-                let pz = Math.sin(polRad) * wave;
-
-                points.push(new THREE.Vector3(t+pos[0], py+pos[1], pz+pos[2]));
-            }
-            mesh.geometry.setFromPoints(points);
-        }
+        // linear_photon no longer needs CPU updates.
+        // Wavelength, Expansion, and Propagation are handled statically by createVectorBricksGeometry
+        // and animated by uTime in the fragment shader.
 
         if(mesh.material && mesh.material.uniforms) {
             mesh.material.uniforms.uTime.value = time;
