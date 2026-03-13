@@ -189,28 +189,51 @@ void main() {
 
     vec3 baseColor;
 
-    if (isLinear > 0.5) {
-        // For linear photons, E and B fields are orthogonal and propagate forward
-        // They are NOT twisted together.
+    // The user explicitly requested mathematical EM field vector colors mapping directly to the geometric faces of the "square" tube.
+    // 0.25 = Top (+E, Green)
+    // 0.75 = Bottom (-E, Red)
+    // 0.00 = Right (+B, Purple)
+    // 0.50 = Left (-B, Yellow)
 
-        // Use vUv.x mapping to alternate colors along the length (like a pure wave propagation)
-        // This makes it visible from all angles identically without caring about top/bottom sides.
-        // It provides the "rainbow" linear look seen in pure EM waves.
+    // We determine the face strictly by rounding vUv.y to the nearest 0.25 step, ignoring longitudinal phase mixing
+    // so the "cubes are constant" and mathematically represent the vectors.
 
-        // This reproduces the getContinuousPhaseColor but using only localPhase (longitudinal), ignoring faceAngle
-        baseColor = getContinuousPhaseColor(localPhase);
+    if (abs(vUv.y - 0.25) < 0.1) {
+        baseColor = colorEPlus;
+    } else if (abs(vUv.y - 0.75) < 0.1) {
+        baseColor = colorEMinus;
+    } else if (abs(vUv.y - 0.0) < 0.1 || abs(vUv.y - 1.0) < 0.1) { // 0.0 or 1.0
+        baseColor = colorBPlus;
+    } else if (abs(vUv.y - 0.5) < 0.1) {
+        baseColor = colorBMinus;
     } else {
-        // The continuous relative phase combines the longitudinal wave phase with the transverse face angle
-        float phi = localPhase + faceAngle;
-        baseColor = getContinuousPhaseColor(phi);
+        // Fallback (front/back caps, or edges)
+        baseColor = vec3(0.5, 0.5, 0.5);
+    }
+
+    // Add black lines to mark the peaks/minimums of the field strength
+    // The field magnitude peaks exactly at the center of each face (0.0, 0.25, 0.5, 0.75)
+    // We draw a thin black line precisely at those uV.y coordinates
+    float lineDist = min(min(abs(vUv.y - 0.0), abs(vUv.y - 0.25)), min(abs(vUv.y - 0.5), abs(vUv.y - 0.75)));
+    // Also check for 1.0 since uV.y wraps
+    lineDist = min(lineDist, abs(vUv.y - 1.0));
+
+    // If we are very close to the center of a face, output black
+    if (lineDist < 0.02) {
+        baseColor = vec3(0.0, 0.0, 0.0); // True black
     }
 
     vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
     float diff = max(dot(vNormal, lightDir), 0.0);
-    float ambient = 0.3;
-    float glow = max(0.0, 1.0 - dot(vNormal, normalize(vec3(0, 0, 1)))) * 0.4;
+    float ambient = 0.5;
+    // Flat/matte shading, no artificial glow
+    vec3 finalColor = baseColor * (diff * 0.5 + ambient);
 
-    vec3 finalColor = baseColor * (diff * 0.7 + ambient) + baseColor * glow;
+    // Ensure the black lines stay perfectly black without getting washed out by ambient light
+    if (lineDist < 0.02) {
+        finalColor = vec3(0.0, 0.0, 0.0);
+    }
+
     gl_FragColor = vec4(finalColor, 1.0);
 }`;
 
@@ -278,12 +301,12 @@ class TrefoilCurve extends THREE.Curve {
 // --- SETUP SCENE ---
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x020205);
+// scene.background = new THREE.Color(0x020205); // Let CSS handle the background gradient
 
 const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1e9);
 camera.position.z = 10;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, alpha: true });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 container.appendChild(renderer.domElement);
@@ -297,44 +320,92 @@ const pointLight = new THREE.PointLight(0xffffff, 1);
 pointLight.position.set(10, 10, 10);
 scene.add(pointLight);
 
-// Stars
-const starsGeometry = new THREE.BufferGeometry();
-const starsCount = 3000;
-const posArray = new Float32Array(starsCount * 3);
-for(let i = 0; i < starsCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 2000;
-}
-starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const starsMaterial = new THREE.PointsMaterial({ size: 0.5, color: 0xffffff, transparent: true, opacity: 0.5 });
-const starsMesh = new THREE.Points(starsGeometry, starsMaterial);
-scene.add(starsMesh);
-
 // --- PARTICLE FACTORIES & VECTORS ---
 let currentMeshes = [];
 let currentOrbiters = []; // Track electrons that orbit the nucleus
 let time = 0;
 let annihilated = false;
 
-// Function to generate discrete square sections (bricks) along a curve
-function createVectorBricksGeometry(curve, segments, radius, closed=true, expansionRate=0.0, isCircular=false) {
+// Function to compute Bishop (Parallel Transport) Frames
+function computeBishopFrames(curve, segments, closed) {
+    // Generate parallel transport frames to avoid Frenet-Serret pinching/twisting
+    const points = curve.getSpacedPoints(segments);
+    const tangents = [];
+    for (let i = 0; i <= segments; i++) {
+        let t = new THREE.Vector3();
+        if (i < segments) {
+            t.subVectors(points[i+1], points[i]).normalize();
+        } else {
+            t.subVectors(points[i], points[i-1]).normalize();
+        }
+        tangents.push(t);
+    }
+    if (closed) {
+        tangents[segments].copy(tangents[0]);
+    }
+
+    const normals = [];
+    const binormals = [];
+    let initialNormal = new THREE.Vector3();
+    let min = Math.min(Math.abs(tangents[0].x), Math.abs(tangents[0].y), Math.abs(tangents[0].z));
+    if (min === Math.abs(tangents[0].x)) initialNormal.set(1,0,0);
+    else if (min === Math.abs(tangents[0].y)) initialNormal.set(0,1,0);
+    else initialNormal.set(0,0,1);
+
+    let v = new THREE.Vector3().crossVectors(tangents[0], initialNormal).normalize();
+    initialNormal.crossVectors(tangents[0], v).normalize();
+    normals.push(initialNormal);
+    binormals.push(new THREE.Vector3().crossVectors(tangents[0], initialNormal).normalize());
+
+    for (let i = 1; i <= segments; i++) {
+        let prevNormal = normals[i-1];
+        let currentNormal = prevNormal.clone();
+
+        let axis = new THREE.Vector3().crossVectors(tangents[i-1], tangents[i]);
+        if (axis.lengthSq() > 1e-10) {
+            axis.normalize();
+            let angle = Math.acos(THREE.MathUtils.clamp(tangents[i-1].dot(tangents[i]), -1, 1));
+            currentNormal.applyAxisAngle(axis, angle);
+        }
+
+        // Orthogonalize just to be safe
+        let currentBinormal = new THREE.Vector3().crossVectors(tangents[i], currentNormal).normalize();
+        currentNormal.crossVectors(currentBinormal, tangents[i]).normalize();
+
+        normals.push(currentNormal);
+        binormals.push(currentBinormal);
+    }
+
+    if (closed) {
+        let axis = new THREE.Vector3().crossVectors(normals[0], normals[segments]);
+        let angle = Math.acos(THREE.MathUtils.clamp(normals[0].dot(normals[segments]), -1, 1));
+        if (tangents[0].dot(axis) < 0) angle = -angle;
+        let diff = angle / segments;
+        for (let i = 1; i <= segments; i++) {
+            normals[i].applyAxisAngle(tangents[i], diff * i);
+            binormals[i].crossVectors(tangents[i], normals[i]).normalize();
+        }
+    }
+
+    return { tangents, normals, binormals };
+}
+
+// Function to generate continuous swept sections along a curve
+
+function createContinuousSweepGeometry(curve, segments, radius, closed=true, expansionRate=0.0, twistAngle=0.0) {
     const geom = new THREE.BufferGeometry();
     const positions = [];
     const normals = [];
     const uvs = [];
 
-    // Extract evenly spaced points and their mathematical frames
+    // Extract evenly spaced points and their mathematical frames using Bishop frame
     const points = curve.getSpacedPoints(segments);
-    const frames = curve.computeFrenetFrames(segments, closed);
+    const frames = computeBishopFrames(curve, segments, closed);
 
-    for (let i = 0; i < segments; i++) {
+    const ringVertices = [];
+
+    for (let i = 0; i <= segments; i++) {
         const pt = points[i];
-        let nextPt;
-        if (!closed && i === segments - 1) {
-            nextPt = pt.clone().add(pt.clone().sub(points[i-1]));
-        } else {
-            nextPt = points[(i + 1) % segments];
-        }
-
         const T = frames.tangents[i];
 
         // Inverse Square / Spherical Dilation Effect:
@@ -343,9 +414,9 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
         let N = frames.normals[i].clone().normalize();
         let B_vec = frames.binormals[i].clone().normalize();
 
-        if (isCircular) {
+        if (twistAngle !== 0.0) {
             // Physically twist the vectors around the tangent for circular polarization
-            const phase = (i / segments) * Math.PI * 8.0; // 4 full rotations
+            const phase = (i / segments) * twistAngle;
             const cosP = Math.cos(phase);
             const sinP = Math.sin(phase);
 
@@ -356,52 +427,71 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
             B_vec = newB;
         }
 
-        // Treat mathematically as E (Normal) and B (Binormal) vectors
-        // For linear polarized, we want rectangular cross-sections (wide E, thin B to represent amplitude points)
-        // If circular, we want them perfectly equal (squares) since amplitude rotates equally
+        const isSquare = twistAngle !== 0.0;
+        const E_mag = isSquare ? currentRadius * 1.5 : currentRadius * 2.0;
+        const B_mag = isSquare ? currentRadius * 1.5 : currentRadius * 0.2; // Thin in B direction for linear
 
-        const E_mag = isCircular ? currentRadius * 1.5 : currentRadius * 2.0;
-        const B_mag = isCircular ? currentRadius * 1.5 : currentRadius * 0.2; // Thin in B direction for linear
+        const E = N.clone().multiplyScalar(E_mag);
+        const B = B_vec.clone().multiplyScalar(B_mag);
 
-        const E = N.multiplyScalar(E_mag);
-        const B = B_vec.multiplyScalar(B_mag);
+        // 4 Corners of the rectangle
+        const c0 = pt.clone().add(E).add(B); // Top-Right (+E, +B)
+        const c1 = pt.clone().add(E).sub(B); // Top-Left (+E, -B)
+        const c2 = pt.clone().sub(E).sub(B); // Bottom-Left (-E, -B)
+        const c3 = pt.clone().sub(E).add(B); // Bottom-Right (-E, +B)
 
-        // Create a thin brick (slice) centered at pt, thickness based on segment length
-        const segmentLength = pt.distanceTo(nextPt);
-        const halfThick = T.clone().multiplyScalar(segmentLength * 0.4); // 80% coverage, 20% gap
+        ringVertices.push({
+            c0, c1, c2, c3, N: N.clone(), B_vec: B_vec.clone()
+        });
+    }
 
-        const c0 = pt.clone().add(E).add(B).sub(halfThick); // +E, +B, Back
-        const c1 = pt.clone().sub(E).add(B).sub(halfThick); // -E, +B, Back
-        const c2 = pt.clone().sub(E).sub(B).sub(halfThick); // -E, -B, Back
-        const c3 = pt.clone().add(E).sub(B).sub(halfThick); // +E, -B, Back
-        const c4 = pt.clone().add(E).add(B).add(halfThick); // +E, +B, Front
-        const c5 = pt.clone().sub(E).add(B).add(halfThick); // -E, +B, Front
-        const c6 = pt.clone().sub(E).sub(B).add(halfThick); // -E, -B, Front
-        const c7 = pt.clone().add(E).sub(B).add(halfThick); // +E, -B, Front
+    function addQuad(v0, v1, v2, v3, norm, u0, u1, uvY) {
+        // v0: top-left, v1: top-right, v2: bottom-right, v3: bottom-left (in local face coords)
 
-        const u = i / segments;
+        // Triangle 1: v0, v2, v1
+        positions.push(...v0, ...v2, ...v1);
+        normals.push(...norm, ...norm, ...norm);
+        uvs.push(u0, uvY, u1, uvY, u1, uvY);
 
-        function addQuad(v0, v1, v2, v3, norm, uvY) {
-            positions.push(...v0, ...v1, ...v2);
-            normals.push(...norm, ...norm, ...norm);
-            uvs.push(u, uvY, u, uvY, u, uvY);
+        // Triangle 2: v0, v3, v2
+        positions.push(...v0, ...v3, ...v2);
+        normals.push(...norm, ...norm, ...norm);
+        uvs.push(u0, uvY, u0, uvY, u1, uvY);
+    }
 
-            positions.push(...v0, ...v2, ...v3);
-            normals.push(...norm, ...norm, ...norm);
-            uvs.push(u, uvY, u, uvY, u, uvY);
-        }
+    for (let i = 0; i < segments; i++) {
+        const r1 = ringVertices[i];
+        const r2 = ringVertices[i+1];
 
-        const normE = N.clone().normalize();
-        const normB = B_vec.clone().normalize();
-        const normT = T.clone().normalize();
+        const u0 = i / segments;
+        const u1 = (i + 1) / segments;
 
-        // Map faces to Shader E/B color coordinates
-        addQuad(c0.toArray(), c3.toArray(), c7.toArray(), c4.toArray(), normE.toArray(), 0.25); // Top (+E)
-        addQuad(c1.toArray(), c2.toArray(), c6.toArray(), c5.toArray(), normE.clone().negate().toArray(), 0.75); // Bottom (-E)
-        addQuad(c0.toArray(), c1.toArray(), c5.toArray(), c4.toArray(), normB.toArray(), 0.0); // Right (+B)
-        addQuad(c3.toArray(), c7.toArray(), c6.toArray(), c2.toArray(), normB.clone().negate().toArray(), 0.5); // Left (-B)
-        addQuad(c0.toArray(), c3.toArray(), c2.toArray(), c1.toArray(), normT.clone().negate().toArray(), 0.0); // Back
-        addQuad(c4.toArray(), c5.toArray(), c6.toArray(), c7.toArray(), normT.toArray(), 0.0); // Front
+        // Top Face (+E), normal is N
+        // v0: r1.c1, v1: r2.c1, v2: r2.c0, v3: r1.c0
+        addQuad(r1.c1.toArray(), r2.c1.toArray(), r2.c0.toArray(), r1.c0.toArray(), r1.N.toArray(), u0, u1, 0.25);
+
+        // Bottom Face (-E), normal is -N
+        // v0: r1.c3, v1: r2.c3, v2: r2.c2, v3: r1.c2
+        addQuad(r1.c3.toArray(), r2.c3.toArray(), r2.c2.toArray(), r1.c2.toArray(), r1.N.clone().negate().toArray(), u0, u1, 0.75);
+
+        // Right Face (+B), normal is B_vec
+        // v0: r1.c0, v1: r2.c0, v2: r2.c3, v3: r1.c3
+        addQuad(r1.c0.toArray(), r2.c0.toArray(), r2.c3.toArray(), r1.c3.toArray(), r1.B_vec.toArray(), u0, u1, 0.0);
+
+        // Left Face (-B), normal is -B_vec
+        // v0: r1.c2, v1: r2.c2, v2: r2.c1, v3: r1.c1
+        addQuad(r1.c2.toArray(), r2.c2.toArray(), r2.c1.toArray(), r1.c1.toArray(), r1.B_vec.clone().negate().toArray(), u0, u1, 0.5);
+    }
+
+    // Caps if not closed
+    if (!closed) {
+        const rStart = ringVertices[0];
+        const normStart = frames.tangents[0].clone().negate();
+        addQuad(rStart.c1.toArray(), rStart.c0.toArray(), rStart.c3.toArray(), rStart.c2.toArray(), normStart.toArray(), 0, 0, 0.99);
+
+        const rEnd = ringVertices[segments];
+        const normEnd = frames.tangents[segments].clone();
+        addQuad(rEnd.c0.toArray(), rEnd.c1.toArray(), rEnd.c2.toArray(), rEnd.c3.toArray(), normEnd.toArray(), 1, 1, 0.99);
     }
 
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -412,12 +502,13 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
     return geom;
 }
 
+
 function createGeonMaterial(twistFactor, particleType = 'electron') {
     // Revert to strict E/B field mapping
-    const ePlus = '#00ff00';   // Green
-    const eMinus = '#ff0000';  // Red
-    const bPlus = '#800080';   // Purple
-    const bMinus = '#ffff00';  // Yellow
+        const ePlus = '#00E676';   // Mint Green
+    const eMinus = '#D50000';  // Crimson Red
+    const bPlus = '#651FFF';   // Deep Violet
+    const bMinus = '#FFAB00';  // Amber/Yellow
 
     return new THREE.ShaderMaterial({
         vertexShader: particleVertexShader,
@@ -480,8 +571,9 @@ function addFieldVectors(mesh, curveType, params) {
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
     // Use the custom discrete vector bricks geometry
-    const geometry = createVectorBricksGeometry(curve, 100, tubeRadius, true);
-    const material = createGeonMaterial(isPositron ? -2.0 : 2.0, isPositron ? 'positron' : 'electron');
+    // The twist here is geometric. By request, reducing from Math.PI * 4.0 (720 deg) to Math.PI * 2.0 (360 deg) for clearer visibility, though theory says 720.
+    const geometry = createContinuousSweepGeometry(curve, 100, tubeRadius, true, 0.0, Math.PI * 2.0);
+    const material = createGeonMaterial(isPositron ? -1.0 : 1.0, isPositron ? 'positron' : 'electron');
     const mesh = new THREE.Mesh(geometry, material);
 
     if(Array.isArray(pos)) mesh.position.set(...pos);
@@ -571,7 +663,7 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=fals
     const expansionRate = (SIM_STATE.lightMode) ? SIM_STATE.lightWavelength * 0.05 : 0.0;
 
     // Use the exact same discrete vector bricks as the particles
-    const geometry = createVectorBricksGeometry(curve, 100, amplitude, false, expansionRate, isCircular);
+    const geometry = createContinuousSweepGeometry(curve, 100, amplitude, false, expansionRate, isCircular ? Math.PI * 4.0 : 0.0);
 
     // For a linear photon to show spatial waves, the "twistFactor" becomes the number
     // of wavelengths that fit into the geometry.
@@ -594,7 +686,7 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=fals
 function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
     // Use the custom discrete vector bricks geometry
-    const geometry = createVectorBricksGeometry(curve, 120, tubeRadius, true);
+    const geometry = createContinuousSweepGeometry(curve, 120, tubeRadius, true, 0.0, Math.PI * 4.0);
     const material = createGeonMaterial(3.0, isNeutral ? 'neutron' : 'proton');
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -805,10 +897,91 @@ function clearScene() {
 
 
 // --- UI & INTERACTIVITY (ENGINE CONTROLS) ---
+
+// --- ONBOARDING & TOOLTIPS ---
+const landingScreen = document.getElementById('landing-screen');
+const btnEnterSim = document.getElementById('btn-enter-sim');
+const topNavBar = document.getElementById('top-nav-bar');
+const tooltipLayer = document.getElementById('tooltip-layer');
+const tooltipBox = document.getElementById('tooltip-box');
+const tooltipTitle = document.getElementById('tooltip-title');
+const tooltipDesc = document.getElementById('tooltip-desc');
+const tooltipStep = document.getElementById('tooltip-step');
+const btnTooltipNext = document.getElementById('btn-tooltip-next');
+
+let currentTooltip = 0;
+const tooltips = [
+    { title: "The 4π Möbius Electron", desc: "This continuous sweeping loop mathematically confines a 1D photon track into a stable 3D orbit.", pos: { top: '30%', left: '30%' } },
+    { title: "Mathematical Coloring", desc: "Notice the strictly orthogonal colors. The faces represent continuous Electric (Green/Red) and Magnetic (Purple/Yellow) gradients.", pos: { top: '30%', left: '50%' } },
+    { title: "Simulation Controls", desc: "Use the sliders below to alter the time dilation and camera sensitivity. Use the right panel to read the geometric kinematics.", pos: { top: '70%', left: '70%' } }
+];
+
+function showTooltip(index) {
+    if (index >= tooltips.length) {
+        tooltipLayer.classList.add('hidden');
+        tooltipBox.classList.add('opacity-0', 'scale-90');
+        return;
+    }
+
+    const tip = tooltips[index];
+    tooltipTitle.textContent = tip.title;
+    tooltipDesc.textContent = tip.desc;
+    tooltipStep.textContent = `${index + 1}/${tooltips.length}`;
+
+    tooltipBox.style.top = tip.pos.top;
+    tooltipBox.style.left = tip.pos.left;
+
+    tooltipLayer.classList.remove('hidden');
+    // small delay to allow display flex to apply before transition
+    setTimeout(() => {
+        tooltipBox.classList.remove('opacity-0', 'scale-90');
+        tooltipBox.classList.add('opacity-100', 'scale-100');
+    }, 50);
+}
+
+btnTooltipNext.addEventListener('click', () => {
+    tooltipBox.classList.remove('opacity-100', 'scale-100');
+    tooltipBox.classList.add('opacity-0', 'scale-90');
+    setTimeout(() => {
+        currentTooltip++;
+        showTooltip(currentTooltip);
+    }, 300);
+});
+
+btnEnterSim.addEventListener('click', () => {
+    landingScreen.style.opacity = '0';
+    setTimeout(() => {
+        landingScreen.classList.add('hidden');
+        // Start the tour on the first step
+        goToStep(3); // Jump to electron for the tour as per user request context
+        showTooltip(0);
+    }, 700);
+});
+
+// Segmented Nav logic
+function buildSegmentedNav() {
+    topNavBar.innerHTML = '';
+    // Let's pick 4 key steps to highlight in the top bar
+    const highlightIds = ['em_linear', 'leptons', 'hadrons', 'water'];
+    const navItems = tourSteps.filter(s => highlightIds.includes(s.id));
+
+    navItems.forEach(step => {
+        const btn = document.createElement('button');
+        const origIdx = tourSteps.findIndex(s => s.id === step.id);
+
+        btn.className = `px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded transition-all font-mono ${currentStepIndex === origIdx ? 'bg-blue-600/30 text-blue-400 border border-blue-500/50' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1e1e24]'}`;
+
+        // Strip number prefix for cleaner nav
+        btn.textContent = step.title.replace(/^[0-9]+.s*/, '').replace(/Atoms: /, '').replace(/EM Waves: /, '').replace(/Leptons: /, '').replace(/Hadrons: /, '');
+
+        btn.onclick = () => goToStep(origIdx);
+        topNavBar.appendChild(btn);
+    });
+}
+
 const docContainer = document.getElementById('documentation');
 const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
-const selectDropdown = document.getElementById('tour-select');
 
 // Sim Controls
 const inputSpeed = document.getElementById('sim-speed');
@@ -854,9 +1027,6 @@ function updateUI() {
     const data = tourSteps[currentStepIndex];
 
     // Update Dropdown
-    selectDropdown.innerHTML = tourSteps.map((step, idx) =>
-        `<option value="${idx}" ${idx === currentStepIndex ? 'selected' : ''}>${step.title}</option>`
-    ).join('');
 
     // Update Buttons
     btnPrev.disabled = currentStepIndex === 0;
@@ -884,8 +1054,35 @@ function updateUI() {
             `).join('')}
         </div>
     `;
+    html += `
+<div class="mt-8 border-t border-[#2a2a35] pt-6 font-inter">
+    <h2 class="text-[13px] font-bold text-white mb-2 uppercase tracking-widest border-b border-[#2a2a35] pb-2">Abandoning the Point-Particle: The Volumetric Sweep</h2>
+    <p class="text-slate-400 text-[11px] leading-relaxed mb-4">Standard physics visualizes the electron as a zero-dimensional point or a smeared probability cloud. The Geon framework mathematically confines the electron as a one-dimensional photon track wrapped into a stable, continuous orbit. To accurately simulate this in 3D space, this engine abandons standard particle emitters and relies on a strict Parametric Volumetric Sweep governed by four absolute geometric rules.</p>
+
+    <div class="space-y-4">
+        <div>
+            <h3 class="text-[11px] font-bold text-blue-400 mb-1">1. The Closed Loop (The Poynting Guide)</h3>
+            <p class="text-slate-400 text-[11px] leading-relaxed">An electromagnetic wave propagates along its directional energy flux, governed by the Poynting vector ($\vec{S}$). In a Geon, this vector does not travel in a straight line; it catches its own tail. The engine generates a 1D base curve—a perfect circle for the electron, or a (3,2)-Torus knot (Trefoil) for the nucleons —which acts as the absolute center-line of the track.</p>
+        </div>
+        <div>
+            <h3 class="text-[11px] font-bold text-blue-400 mb-1">2. The Bishop Frame (Parallel Transport)</h3>
+            <p class="text-slate-400 text-[11px] leading-relaxed">To extrude a 3D volume along a complex looping path, standard 3D rendering relies on the Frenet-Serret frame. However, Frenet frames calculate the normal vector using the second derivative of the curve, causing the entire 3D mesh to violently pinch and flip $180^\circ$ at mathematical inflection points. To preserve the flawless topological continuity of the vacuum seal, this simulation utilizes a Bishop Frame (Parallel Transport). This ensures the geometric canvas glides smoothly around the entire loop without ever twisting upon itself.</p>
+        </div>
+        <div>
+            <h3 class="text-[11px] font-bold text-blue-400 mb-1">3. The 4-Corner Electromagnetic Boundary</h3>
+            <p class="text-slate-400 text-[11px] leading-relaxed">The physical "thickness" of the light track is not arbitrary. It is defined by the absolute amplitude boundaries of the orthogonal electric ($\vec{E}$) and magnetic ($\vec{B}$) fields. Instead of sweeping a high-poly cylinder, the engine sweeps a rigid 2D square along the Bishop frame. The four corners of this square represent the strict maximum flux boundaries of the $\vec{E}$ and $\vec{B}$ gradients, rendering the wave as a solid, permanent topological displacement in the Casimir fluid.</p>
+        </div>
+        <div>
+            <h3 class="text-[11px] font-bold text-blue-400 mb-1">4. The $4\pi$ Möbius Twist (Circular Polarization)</h3>
+            <p class="text-slate-400 text-[11px] leading-relaxed">As the wave propagates, the orthogonal electric and magnetic fields continuously twist around the propagation axis due to circular polarization. For the Spin-1/2 electron, the engine mathematically forces the square cross-section to rotate by exactly $720^\circ$ ($4\pi$ radians) before the loop closes. When traced along a closed circular orbit, this twist mechanically creates the $4\pi$ Möbius boundary. This absolute topological inversion forces the electric vectors to point inward on one hemisphere and outward on the other, generating the net volumetric displacement that we perceive as "charge."</p>
+        </div>
+    </div>
+</div>
+`;
+
 
     docContainer.innerHTML = html;
+    buildSegmentedNav();
 
     // Ensure KaTeX is fully loaded via the CDN before attempting to render equations
     if (document.readyState === 'complete') {
@@ -915,9 +1112,9 @@ window.switchPhenomenon = (type) => {
     } else if (type === 'leptons') {
         const eRadius = SCALE.ELECTRON_RADIUS;
         // Electron (Left)
-        renderElectron(eRadius, eRadius * 0.1, [-eRadius * 2.5, 0, 0], 1, 2.0);
+        renderElectron(eRadius, eRadius * 0.1, [-eRadius * 2.5, 0, 0], false);
         // Positron (Right, flipped chirality)
-        renderElectron(eRadius, eRadius * 0.1, [eRadius * 2.5, 0, 0], -1, 2.0);
+        renderElectron(eRadius, eRadius * 0.1, [eRadius * 2.5, 0, 0], true);
     } else if (type === 'hadrons') {
         // Proton (Left)
         renderProton(0.2, 0.05, [-1, 0, 0], false);
@@ -1020,7 +1217,6 @@ function goToStep(index) {
 // Listeners
 btnPrev.addEventListener('click', () => goToStep(currentStepIndex - 1));
 btnNext.addEventListener('click', () => goToStep(currentStepIndex + 1));
-selectDropdown.addEventListener('change', (e) => goToStep(parseInt(e.target.value)));
 
 btnPlayPause.addEventListener('click', () => {
     SIM_STATE.paused = !SIM_STATE.paused;
@@ -1307,7 +1503,7 @@ function animate() {
 
                 // Use the custom discrete vector bricks geometry
                 const linearCurve = new LinearJetCurve();
-                const g1 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
+                const g1 = createContinuousSweepGeometry(linearCurve, 100, hTube, false, 0.0, Math.PI * 4.0);
                 const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
@@ -1315,7 +1511,7 @@ function animate() {
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
+                const g2 = createContinuousSweepGeometry(linearCurve, 100, hTube, false, 0.0, Math.PI * 4.0);
                 const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
@@ -1345,7 +1541,7 @@ function animate() {
         }
 
         // linear_photon no longer needs CPU updates.
-        // Wavelength, Expansion, and Propagation are handled statically by createVectorBricksGeometry
+        // Wavelength, Expansion, and Propagation are handled statically by createContinuousSweepGeometry
         // and animated by uTime in the fragment shader.
 
         if(mesh.material && mesh.material.uniforms) {
