@@ -133,13 +133,16 @@ const SCALE = {
 
 // --- SHADERS ---
 const particleVertexShader = `
+attribute float edgeCoord;
 varying vec2 vUv;
 varying vec3 vPosition;
 varying vec3 vNormal;
+varying float vEdgeCoord;
 void main() {
   vUv = uv;
   vPosition = position;
   vNormal = normalize(normalMatrix * normal);
+  vEdgeCoord = edgeCoord;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`;
 
@@ -155,6 +158,7 @@ uniform float isLinear;
 varying vec2 vUv;
 varying vec3 vPosition;
 varying vec3 vNormal;
+varying float vEdgeCoord;
 
 // Helper function to continuously interpolate between 4 colors around a wheel
 vec3 getContinuousPhaseColor(float phase) {
@@ -211,15 +215,13 @@ void main() {
         baseColor = vec3(0.5, 0.5, 0.5);
     }
 
-    // Add black lines to mark the peaks/minimums of the field strength
-    // The field magnitude peaks exactly at the center of each face (0.0, 0.25, 0.5, 0.75)
-    // We draw a thin black line precisely at those uV.y coordinates
-    float lineDist = min(min(abs(vUv.y - 0.0), abs(vUv.y - 0.25)), min(abs(vUv.y - 0.5), abs(vUv.y - 0.75)));
-    // Also check for 1.0 since uV.y wraps
-    lineDist = min(lineDist, abs(vUv.y - 1.0));
+    // Draw black lines to mark the peaks/minimums of the field strength
+    // We use the vEdgeCoord varying which sweeps from -1 to 1 across the width of each face
+    // 0 is exactly the center of the face
+    float lineDist = abs(vEdgeCoord);
 
-    // If we are very close to the center of a face, output black
-    if (lineDist < 0.02) {
+    // If we are very close to the center of a face (and not on an endcap), output black
+    if (lineDist < 0.05 && vUv.y < 0.9) {
         baseColor = vec3(0.0, 0.0, 0.0); // True black
     }
 
@@ -230,7 +232,7 @@ void main() {
     vec3 finalColor = baseColor * (diff * 0.5 + ambient);
 
     // Ensure the black lines stay perfectly black without getting washed out by ambient light
-    if (lineDist < 0.02) {
+    if (lineDist < 0.05 && vUv.y < 0.9) {
         finalColor = vec3(0.0, 0.0, 0.0);
     }
 
@@ -397,6 +399,7 @@ function createContinuousSweepGeometry(curve, segments, radius, closed=true, exp
     const positions = [];
     const normals = [];
     const uvs = [];
+    const edgeCoords = [];
 
     // Extract evenly spaced points and their mathematical frames using Bishop frame
     const points = curve.getSpacedPoints(segments);
@@ -446,17 +449,19 @@ function createContinuousSweepGeometry(curve, segments, radius, closed=true, exp
     }
 
     function addQuad(v0, v1, v2, v3, norm, u0, u1, uvY) {
-        // v0: top-left, v1: top-right, v2: bottom-right, v3: bottom-left (in local face coords)
+        // v0: left, v1: left(next), v2: right(next), v3: right (in local face coords)
 
         // Triangle 1: v0, v2, v1
         positions.push(...v0, ...v2, ...v1);
         normals.push(...norm, ...norm, ...norm);
         uvs.push(u0, uvY, u1, uvY, u1, uvY);
+        edgeCoords.push(-1.0, 1.0, -1.0);
 
         // Triangle 2: v0, v3, v2
         positions.push(...v0, ...v3, ...v2);
         normals.push(...norm, ...norm, ...norm);
         uvs.push(u0, uvY, u0, uvY, u1, uvY);
+        edgeCoords.push(-1.0, 1.0, 1.0);
     }
 
     for (let i = 0; i < segments; i++) {
@@ -497,6 +502,7 @@ function createContinuousSweepGeometry(curve, segments, radius, closed=true, exp
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setAttribute('edgeCoord', new THREE.Float32BufferAttribute(edgeCoords, 1));
     geom.computeBoundingSphere();
 
     return geom;
@@ -1034,8 +1040,13 @@ function updateUI() {
 
     // Update Documentation text
     let html = `
-        <div>
-            <h2 class="text-sm font-bold text-white mb-2 leading-tight">${data.title}</h2>
+        <div class="relative">
+            <h2 class="text-sm font-bold text-white mb-2 leading-tight flex items-center justify-between">
+                <span>${data.title}</span>
+                <button id="btn-math-docs" class="text-xs w-6 h-6 flex items-center justify-center rounded bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors border border-blue-500/30 shrink-0" title="View Mathematical Specification">
+                    ?
+                </button>
+            </h2>
             <p class="text-slate-400 text-[11px] leading-relaxed mb-4">${data.desc}</p>
         </div>
         <div class="bg-[#12121a] border border-[#2a2a35] rounded p-3">
@@ -1043,15 +1054,6 @@ function updateUI() {
             <ul class="list-disc list-inside text-[11px] text-slate-300 space-y-1 font-mono">
                 ${data.features.map(f => `<li>${f}</li>`).join('')}
             </ul>
-        </div>
-        <div class="mt-1 space-y-2">
-            <h3 class="text-[9px] font-bold text-purple-500 uppercase tracking-widest pl-1 mt-4">Computed Kinematics</h3>
-            ${data.math.map(m => `
-                <div class="bg-[#050508] p-3 rounded border border-[#1e1e24] shadow-inner">
-                    <span class="text-[9px] text-slate-500 block mb-1 font-mono uppercase">${m.label}</span>
-                    <div class="text-slate-300 overflow-x-auto overflow-y-hidden pb-1 math-expr">${m.expr}</div>
-                </div>
-            `).join('')}
         </div>
     `;
     html += `
@@ -1083,6 +1085,15 @@ function updateUI() {
 
     docContainer.innerHTML = html;
     buildSegmentedNav();
+
+    const mathDocsBtn = document.getElementById('btn-math-docs');
+    if (mathDocsBtn) {
+        mathDocsBtn.addEventListener('click', () => {
+            if (typeof showMathDocsModal === 'function') {
+                showMathDocsModal(data);
+            }
+        });
+    }
 
     // Ensure KaTeX is fully loaded via the CDN before attempting to render equations
     if (document.readyState === 'complete') {
@@ -1687,3 +1698,77 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
 });
+
+// --- MATH DOCS MODAL ---
+function showMathDocsModal(data) {
+    let modal = document.getElementById('math-docs-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'math-docs-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-[#000000cc] backdrop-blur-sm p-4 opacity-0 pointer-events-none transition-opacity duration-300';
+        modal.innerHTML = `
+            <div class="bg-[#0c1018] border border-blue-900/50 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col font-inter">
+                <div class="flex items-center justify-between p-4 border-b border-[#2a2a35]">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-3">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        Mathematical Specification
+                    </h2>
+                    <button id="btn-close-math" class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto custom-scrollbar flex-grow" id="math-modal-content">
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById('btn-close-math').addEventListener('click', () => {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        });
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) modal.classList.add('opacity-0', 'pointer-events-none');
+        });
+    }
+
+    const content = document.getElementById('math-modal-content');
+
+    // Build content dynamically based on the current step's math properties
+    let contentHtml = `
+        <h3 class="text-blue-400 font-bold mb-4 border-b border-blue-900/30 pb-2">${data.title}</h3>
+        <p class="text-slate-300 text-sm mb-6 leading-relaxed">${data.desc}</p>
+    `;
+
+    if (data.math && data.math.length > 0) {
+        contentHtml += `<div class="space-y-6">`;
+        data.math.forEach(m => {
+            contentHtml += `
+                <div class="bg-[#12121a] p-4 rounded border border-[#2a2a35] shadow-inner">
+                    <h4 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">${m.label}</h4>
+                    <div class="text-slate-200 overflow-x-auto overflow-y-hidden pb-2 math-expr text-lg flex justify-center w-full">${m.expr}</div>
+                </div>
+            `;
+        });
+        contentHtml += `</div>`;
+    } else {
+        contentHtml += `<p class="text-slate-500 italic text-sm text-center">No specific kinematic formulas define this structural step.</p>`;
+    }
+
+    content.innerHTML = contentHtml;
+
+    // Render math
+    if (window.katex) {
+        content.querySelectorAll('.math-expr').forEach(el => {
+            katex.render(el.textContent, el, {
+                throwOnError: false,
+                displayMode: true
+            });
+        });
+    }
+
+    // Show modal
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+}
+
+// Add event listener to the dynamically created btn-math-docs in updateUI
+// The problem is updateUI replaces innerHTML. We need to attach the listener AFTER updateUI finishes.
