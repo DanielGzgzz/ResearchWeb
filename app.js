@@ -1,8 +1,5 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // --- STATE: ENGINE CONTROLS ---
 const SIM_STATE = {
@@ -27,7 +24,7 @@ const tourSteps = [
             { label: 'Gravitation (Casimir Pressure Gradient)', expr: 'G = \\frac{P_{vac}\\sigma^{2}}{4\\pi m_{p}^{2}}' }
         ],
         features: ['Zero-point tensor fluid', 'Geons displace vacuum', 'Geometric shadowing causes gravity'],
-        cameraPos: { x: 0, y: 0, z: 10 },
+        cameraPos: { x: 0, y: 0, z: 1000 },
     },
     {
         id: 'electron',
@@ -39,7 +36,7 @@ const tourSteps = [
             { label: 'Casimir Confinement Pressure', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2} \\equiv \\frac{m_e c^2}{r}' },
         ],
         features: ['4π (720°) twisted Möbius double-loop', 'Macroscopically massive boundary (193 fm radius)', 'Explains Dirac g=2 anomaly geometrically'],
-        cameraPos: { x: 0, y: 0, z: 10 },
+        cameraPos: { x: 0, y: 0, z: 1000 },
     },
     {
         id: 'proton',
@@ -156,6 +153,73 @@ const SCALE = {
 };
 
 // --- SHADERS ---
+const particleVertexShader = `
+varying vec2 vUv;
+varying vec3 vPosition;
+varying vec3 vNormal;
+void main() {
+  vUv = uv;
+  vPosition = position;
+  vNormal = normalize(normalMatrix * normal);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+const particleFragmentShader = `
+uniform float uTime;
+uniform vec3 colorEPlus;   // Green
+uniform vec3 colorEMinus;  // Red
+uniform vec3 colorBPlus;   // Purple
+uniform vec3 colorBMinus;  // Yellow
+uniform float uTwistFactor;
+
+varying vec2 vUv;
+varying vec3 vPosition;
+varying vec3 vNormal;
+
+// Helper function to continuously interpolate between 4 colors around a wheel
+vec3 getContinuousPhaseColor(float phase) {
+    // Normalize phase to 0 -> 4.0
+    float p = mod(phase, 6.28318530718) / 1.57079632679;
+
+    // Smoothstep for non-linear, punchy color transitions
+    float f = smoothstep(0.0, 1.0, fract(p));
+
+    if (p < 1.0) {
+        return mix(colorEPlus, colorBPlus, f);      // +E (Green) -> +B (Purple)
+    } else if (p < 2.0) {
+        return mix(colorBPlus, colorEMinus, f);     // +B (Purple) -> -E (Red)
+    } else if (p < 3.0) {
+        return mix(colorEMinus, colorBMinus, f);    // -E (Red) -> -B (Yellow)
+    } else {
+        return mix(colorBMinus, colorEPlus, f);     // -B (Yellow) -> +E (Green)
+    }
+}
+
+void main() {
+    // vUv.y strictly defines the geometric face angle around the tube
+    // 0.25 = +E face (PI/2), 0.75 = -E face (3PI/2)
+    // 0.00 = +B face (0),    0.50 = -B face (PI)
+    float faceAngle = vUv.y * 6.28318530718;
+
+    // Propagate wave along the length of the tube (vUv.x) via uTime to simulate light speed
+    float propagation = uTime * 20.0;
+
+    // Combine structural twist, propagation, and the local face angle to get the absolute field phase
+    float localPhase = vUv.x * uTwistFactor * 6.28318530718 - propagation;
+
+    // The continuous relative phase combines the longitudinal wave phase with the transverse face angle
+    float phi = localPhase + faceAngle;
+
+    vec3 baseColor = getContinuousPhaseColor(phi);
+
+    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    float ambient = 0.3;
+    float glow = max(0.0, 1.0 - dot(vNormal, normalize(vec3(0, 0, 1)))) * 0.4;
+
+    vec3 finalColor = baseColor * (diff * 0.7 + ambient) + baseColor * glow;
+    gl_FragColor = vec4(finalColor, 1.0);
+}`;
 
 // --- CURVES ---
 class LinearPhotonCurve extends THREE.Curve {
@@ -234,18 +298,6 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// Post-Processing (Bloom)
-const renderScene = new RenderPass(scene, camera);
-const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(container.clientWidth, container.clientHeight),
-    0.15,  // strength
-    0.4,   // radius
-    0.95   // threshold
-);
-const composer = new EffectComposer(renderer);
-composer.addPass(renderScene);
-composer.addPass(bloomPass);
-
 // Lighting
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const pointLight = new THREE.PointLight(0xffffff, 1);
@@ -271,291 +323,128 @@ let time = 0;
 let annihilated = false;
 
 // Function to generate discrete square sections (bricks) along a curve
-// Function to compute Bishop (Parallel Transport) Frames
-function computeBishopFrames(curve, segments, closed) {
-    // Generate parallel transport frames to avoid Frenet-Serret pinching/twisting
-    const points = curve.getSpacedPoints(segments);
-    const tangents = [];
-    for (let i = 0; i <= segments; i++) {
-        let t = new THREE.Vector3();
-        if (i < segments) {
-            t.subVectors(points[i+1], points[i]).normalize();
-        } else {
-            t.subVectors(points[i], points[i-1]).normalize();
-        }
-        tangents.push(t);
-    }
-    if (closed) {
-        tangents[segments].copy(tangents[0]);
-    }
-
-    const normals = [];
-    const binormals = [];
-    let initialNormal = new THREE.Vector3();
-    let min = Math.min(Math.abs(tangents[0].x), Math.abs(tangents[0].y), Math.abs(tangents[0].z));
-    if (min === Math.abs(tangents[0].x)) initialNormal.set(1,0,0);
-    else if (min === Math.abs(tangents[0].y)) initialNormal.set(0,1,0);
-    else initialNormal.set(0,0,1);
-
-    let v = new THREE.Vector3().crossVectors(tangents[0], initialNormal).normalize();
-    initialNormal.crossVectors(tangents[0], v).normalize();
-    normals.push(initialNormal);
-    binormals.push(new THREE.Vector3().crossVectors(tangents[0], initialNormal).normalize());
-
-    for (let i = 1; i <= segments; i++) {
-        let prevNormal = normals[i-1];
-        let currentNormal = prevNormal.clone();
-
-        let axis = new THREE.Vector3().crossVectors(tangents[i-1], tangents[i]);
-        if (axis.lengthSq() > 1e-10) {
-            axis.normalize();
-            let angle = Math.acos(THREE.MathUtils.clamp(tangents[i-1].dot(tangents[i]), -1, 1));
-            currentNormal.applyAxisAngle(axis, angle);
-        }
-
-        // Orthogonalize just to be safe
-        let currentBinormal = new THREE.Vector3().crossVectors(tangents[i], currentNormal).normalize();
-        currentNormal.crossVectors(currentBinormal, tangents[i]).normalize();
-
-        normals.push(currentNormal);
-        binormals.push(currentBinormal);
-    }
-
-    if (closed) {
-        let axis = new THREE.Vector3().crossVectors(normals[0], normals[segments]);
-        let angle = Math.acos(THREE.MathUtils.clamp(normals[0].dot(normals[segments]), -1, 1));
-        if (tangents[0].dot(axis) < 0) angle = -angle;
-        let diff = angle / segments;
-        for (let i = 1; i <= segments; i++) {
-            normals[i].applyAxisAngle(tangents[i], diff * i);
-            binormals[i].crossVectors(tangents[i], normals[i]).normalize();
-        }
-    }
-
-    return { tangents, normals, binormals };
-}
-
-// Function to generate continuous swept sections along a curve
-function createContinuousSweepGeometry(curve, segments, radius, closed=true, expansionRate=0.0, particleType='electron') {
+function createVectorBricksGeometry(curve, segments, radius, closed=true, expansionRate=0.0) {
     const geom = new THREE.BufferGeometry();
     const positions = [];
-    const colors = [];
+    const normals = [];
     const uvs = [];
     const indices = [];
 
-    // Extract evenly spaced points and their mathematical frames using Bishop frame
+    // Extract evenly spaced points and their mathematical frames
     const points = curve.getSpacedPoints(segments);
-    const frames = computeBishopFrames(curve, segments, closed);
+    const frames = curve.computeFrenetFrames(segments, closed);
 
-    const ringVertices = [];
+    // Each segment gets a thin square block representing the local E and B vector plane
+    let vertexOffset = 0;
 
-    const colorEPlus = new THREE.Color('#00E676');
-    const colorEMinus = new THREE.Color('#D50000');
-    const colorBPlus = new THREE.Color('#651FFF');
-    const colorBMinus = new THREE.Color('#FFAB00');
-
-    // We only generate vertices up to `segments - 1` if closed, to ensure perfect indexing wrap-around.
-    const loopMax = closed ? segments - 1 : segments;
-
-    for (let i = 0; i <= loopMax; i++) {
+    for (let i = 0; i < segments; i++) {
         const pt = points[i];
+        let nextPt;
+        if (!closed && i === segments - 1) {
+            // For unclosed curves, the last segment shouldn't wrap to 0. Use previous segment length.
+            nextPt = pt.clone().add(pt.clone().sub(points[i-1]));
+        } else {
+            nextPt = points[(i + 1) % segments];
+        }
+
         const T = frames.tangents[i];
 
         // Inverse Square / Spherical Dilation Effect:
+        // As the wave propagates (i), if expansionRate > 0, the radius of the wave scales outwards.
+        // For linear photons, this represents lower energy waves losing focus.
         const currentRadius = radius + (i * expansionRate);
 
-        let N = frames.normals[i].clone().normalize();
-        let B_vec = frames.binormals[i].clone().normalize();
+        // Treat mathematically as E (Normal) and B (Binormal) vectors
+        const E = frames.normals[i].clone().normalize().multiplyScalar(currentRadius);
+        const B = frames.binormals[i].clone().normalize().multiplyScalar(currentRadius);
 
-        let twistAngle = 0.0;
+        // Create a thin brick (slice) centered at pt, thickness based on segment length
+        const segmentLength = pt.distanceTo(nextPt);
+        const halfThick = T.clone().multiplyScalar(segmentLength * 0.4); // 80% coverage, 20% gap
 
-        if (particleType === 'proton' || particleType === 'neutron' || particleType === 'antiproton') {
-            twistAngle = Math.PI * 4.0;
-        } else if (particleType === 'electron' || particleType === 'positron') {
-            twistAngle = Math.PI * 4.0;
-        } else if (particleType === 'linear_photon') {
-            twistAngle = Math.PI * (4.0 / Math.max(0.1, SIM_STATE.lightWavelength));
+        // Increase visual size of B and E vectors slightly for better visibility
+        const E_vis = E.clone().multiplyScalar(1.5);
+        const B_vis = B.clone().multiplyScalar(1.5);
+
+        const c0 = pt.clone().add(E_vis).add(B_vis).sub(halfThick); // +E, +B, Back
+        const c1 = pt.clone().sub(E_vis).add(B_vis).sub(halfThick); // -E, +B, Back
+        const c2 = pt.clone().sub(E_vis).sub(B_vis).sub(halfThick); // -E, -B, Back
+        const c3 = pt.clone().add(E_vis).sub(B_vis).sub(halfThick); // +E, -B, Back
+        const c4 = pt.clone().add(E_vis).add(B_vis).add(halfThick); // +E, +B, Front
+        const c5 = pt.clone().sub(E_vis).add(B_vis).add(halfThick); // -E, +B, Front
+        const c6 = pt.clone().sub(E_vis).sub(B_vis).add(halfThick); // -E, -B, Front
+        const c7 = pt.clone().add(E_vis).sub(B_vis).add(halfThick); // +E, -B, Front
+
+        const u = i / segments;
+
+        function addQuad(v0, v1, v2, v3, norm, uvY) {
+            positions.push(...v0, ...v1, ...v2);
+            normals.push(...norm, ...norm, ...norm);
+            uvs.push(u, uvY, u, uvY, u, uvY);
+
+            positions.push(...v0, ...v2, ...v3);
+            normals.push(...norm, ...norm, ...norm);
+            uvs.push(u, uvY, u, uvY, u, uvY);
         }
 
-        if (particleType === 'positron' || particleType === 'antiproton') {
-            twistAngle *= -1.0;
-        }
+        const normE = E.clone().normalize();
+        const normB = B.clone().normalize();
+        const normT = T.clone().normalize();
 
-        const tParam = i / segments;
+        // The shader reads vUv.y to determine the azimuthal angle theta around the tube:
+        // theta = vUv.y * 2.0 * PI
+        // E field phase oscillates via sin(theta) -> peak at theta=PI/2 (vUv.y=0.25) and 3PI/2 (vUv.y=0.75)
+        // B field phase oscillates via cos(theta) -> peak at theta=0 (vUv.y=0.0) and PI (vUv.y=0.5)
 
-        if (particleType === 'proton' || particleType === 'antiproton') {
-            if (tParam > 0.6) {
-                const blend = THREE.MathUtils.smoothstep(tParam, 0.6, 0.75);
-                twistAngle += blend * Math.PI;
-            }
-        } else if (particleType === 'neutron') {
-            if (tParam > 0.3) {
-                const blend = THREE.MathUtils.smoothstep(tParam, 0.3, 0.45);
-                twistAngle += blend * Math.PI;
-            }
-        }
+        // Top face (+E direction) -> E peaks here, B is 0. Map to vUv.y = 0.25
+        addQuad(c0.toArray(), c3.toArray(), c7.toArray(), c4.toArray(), normE.toArray(), 0.25);
 
-        if (twistAngle !== 0.0 || (particleType === 'linear_photon' && SIM_STATE.lightPolarization !== 0)) {
-            let phase = tParam * twistAngle;
-            if (particleType === 'linear_photon') {
-                phase += THREE.MathUtils.degToRad(SIM_STATE.lightPolarization);
-            }
+        // Bottom face (-E direction) -> E peaks here, B is 0. Map to vUv.y = 0.75
+        addQuad(c1.toArray(), c2.toArray(), c6.toArray(), c5.toArray(), normE.clone().negate().toArray(), 0.75);
 
-            const cosP = Math.cos(phase);
-            const sinP = Math.sin(phase);
+        // Right face (+B direction) -> B peaks here, E is 0. Map to vUv.y = 0.0
+        addQuad(c0.toArray(), c1.toArray(), c5.toArray(), c4.toArray(), normB.toArray(), 0.0);
 
-            const newN = new THREE.Vector3().addScaledVector(N, cosP).addScaledVector(B_vec, sinP).normalize();
-            const newB = new THREE.Vector3().crossVectors(T, newN).normalize();
-            N = newN;
-            B_vec = newB;
-        }
+        // Left face (-B direction) -> B peaks here, E is 0. Map to vUv.y = 0.5
+        addQuad(c3.toArray(), c7.toArray(), c6.toArray(), c2.toArray(), normB.clone().negate().toArray(), 0.5);
 
-        const E_mag = currentRadius * 1.5;
-        const B_mag = currentRadius * 1.5;
+        // Back face (-T direction) -> Cap
+        addQuad(c0.toArray(), c3.toArray(), c2.toArray(), c1.toArray(), normT.clone().negate().toArray(), 0.0);
 
-        const E = N.clone().multiplyScalar(E_mag);
-        const B = B_vec.clone().multiplyScalar(B_mag);
-
-        const c0 = pt.clone().add(E).add(B); // Top-Right (+E, +B)
-        const c1 = pt.clone().add(E).sub(B); // Top-Left (+E, -B)
-        const c2 = pt.clone().sub(E).sub(B); // Bottom-Left (-E, -B)
-        const c3 = pt.clone().sub(E).add(B); // Bottom-Right (-E, +B)
-
-        ringVertices.push({ c0, c1, c2, c3, u: tParam });
-    }
-
-    // Construct distinct faces with hard edges (by duplicating vertices per face), but shared along the length (for smooth shading)
-    for (let i = 0; i <= loopMax; i++) {
-        const r = ringVertices[i];
-
-        // Face 1: Top (+E) [c1, c0]
-        positions.push(...r.c1.toArray(), ...r.c0.toArray());
-        colors.push(colorEPlus.r, colorEPlus.g, colorEPlus.b, colorEPlus.r, colorEPlus.g, colorEPlus.b);
-        uvs.push(r.u, 0.25, r.u, 0.25);
-
-        // Face 2: Bottom (-E) [c3, c2]
-        positions.push(...r.c3.toArray(), ...r.c2.toArray());
-        colors.push(colorEMinus.r, colorEMinus.g, colorEMinus.b, colorEMinus.r, colorEMinus.g, colorEMinus.b);
-        uvs.push(r.u, 0.75, r.u, 0.75);
-
-        // Face 3: Right (+B) [c0, c3]
-        positions.push(...r.c0.toArray(), ...r.c3.toArray());
-        colors.push(colorBPlus.r, colorBPlus.g, colorBPlus.b, colorBPlus.r, colorBPlus.g, colorBPlus.b);
-        uvs.push(r.u, 0.0, r.u, 0.0);
-
-        // Face 4: Left (-B) [c2, c1]
-        positions.push(...r.c2.toArray(), ...r.c1.toArray());
-        colors.push(colorBMinus.r, colorBMinus.g, colorBMinus.b, colorBMinus.r, colorBMinus.g, colorBMinus.b);
-        uvs.push(r.u, 0.5, r.u, 0.5);
-    }
-
-    // Generate indices
-    for (let i = 0; i < segments; i++) {
-        const row0 = i * 8;
-        let row1 = (i + 1) * 8;
-
-        if (closed && i === segments - 1) {
-            row1 = 0; // Wrap around to the start to perfectly weld the geometry
-        }
-
-        function addQuad(v0, v1, v2, v3) {
-            indices.push(v0, v1, v2);
-            indices.push(v0, v2, v3);
-        }
-
-        // Top Face
-        addQuad(row0 + 0, row0 + 1, row1 + 1, row1 + 0);
-        // Bottom Face
-        addQuad(row0 + 2, row0 + 3, row1 + 3, row1 + 2);
-        // Right Face
-        addQuad(row0 + 4, row0 + 5, row1 + 5, row1 + 4);
-        // Left Face (offset 7 is c1 (Top), offset 6 is c2 (Bottom))
-        addQuad(row0 + 7, row0 + 6, row1 + 6, row1 + 7);
-    }
-
-    // Cap ends if not closed
-    if (!closed) {
-        // Start cap
-        const startR = ringVertices[0];
-        const scOffset = positions.length / 3;
-        positions.push(...startR.c1.toArray(), ...startR.c0.toArray(), ...startR.c3.toArray(), ...startR.c2.toArray());
-        for(let j=0; j<4; j++) { colors.push(0.5, 0.5, 0.5); uvs.push(0, 0); }
-        // Start cap: c1, c0, c3, c2
-        indices.push(scOffset, scOffset+2, scOffset+1);
-        indices.push(scOffset, scOffset+3, scOffset+2);
-
-        // End cap: c0, c1, c2, c3
-        const endR = ringVertices[segments];
-        const ecOffset = positions.length / 3;
-        positions.push(...endR.c0.toArray(), ...endR.c1.toArray(), ...endR.c2.toArray(), ...endR.c3.toArray());
-        for(let j=0; j<4; j++) { colors.push(0.5, 0.5, 0.5); uvs.push(1, 1); }
-        indices.push(ecOffset, ecOffset+1, ecOffset+2);
-        indices.push(ecOffset, ecOffset+2, ecOffset+3);
+        // Front face (+T direction) -> Cap
+        addQuad(c4.toArray(), c5.toArray(), c6.toArray(), c7.toArray(), normT.toArray(), 0.0);
     }
 
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geom.setIndex(indices);
-
-    // AAA Refinement: Smooth Vertex Normals
-    // This perfectly calculates smooth lighting along the track but keeps faces separated because vertices aren't shared across corners!
-    geom.computeVertexNormals();
+    // Not using shared vertices/indices anymore so each face can have discrete UVs & flat normals
     geom.computeBoundingSphere();
 
     return geom;
 }
 
-function createGeonMaterial(twistFactor, particleType = 'electron') {
-    const mat = new THREE.MeshStandardMaterial({
-        vertexColors: true,
-        wireframe: SIM_STATE.wireframe,
-        transparent: true,
-        opacity: 1.0,
+function createGeonMaterial(twistFactor, isNeutral=false) {
+    const ePlus = isNeutral ? '#557755' : '#00ff00';
+    const eMinus = isNeutral ? '#775555' : '#ff0000';
+    const bPlus = isNeutral ? '#555577' : '#800080';
+    const bMinus = isNeutral ? '#777755' : '#ffff00';
+
+    return new THREE.ShaderMaterial({
+        vertexShader: particleVertexShader,
+        fragmentShader: particleFragmentShader,
+        uniforms: {
+            uTime: { value: 0 },
+            colorEPlus: { value: new THREE.Color(ePlus) },
+            colorEMinus: { value: new THREE.Color(eMinus) },
+            colorBPlus: { value: new THREE.Color(bPlus) },
+            colorBMinus: { value: new THREE.Color(bMinus) },
+            uTwistFactor: { value: twistFactor },
+        },
         side: THREE.DoubleSide,
-        depthWrite: particleType !== 'linear_photon',
-        roughness: 0.3,
-        metalness: 0.2
+        wireframe: SIM_STATE.wireframe,
+        transparent: false,
     });
-
-    if (particleType === 'linear_photon') {
-        mat.onBeforeCompile = function (shader) {
-            shader.uniforms.uTime = { value: 0 };
-            mat.userData.shader = shader; // Save reference so we can update uTime in animate()
-
-            shader.vertexShader = `
-                varying float vTrackPos;
-            ` + shader.vertexShader;
-
-            shader.vertexShader = shader.vertexShader.replace(
-                `#include <uv_vertex>`,
-                `#include <uv_vertex>
-                vTrackPos = uv.x;`
-            );
-
-            shader.fragmentShader = `
-                uniform float uTime;
-                varying float vTrackPos;
-            ` + shader.fragmentShader;
-
-            shader.fragmentShader = shader.fragmentShader.replace(
-                `#include <dithering_fragment>`,
-                `#include <dithering_fragment>
-                float speed = 2.0;
-                float packetPos = fract(uTime * speed);
-                float dist = abs(vTrackPos - packetPos);
-                if (dist > 0.5) dist = 1.0 - dist;
-                float packetWidth = 0.15;
-                if (dist < packetWidth) {
-                    gl_FragColor.a *= smoothstep(packetWidth, packetWidth * 0.2, dist);
-                } else {
-                    gl_FragColor.a = 0.0;
-                }
-                `
-            );
-        };
-    }
-    return mat;
 }
 
 function updateMaterialsWireframe() {
@@ -600,14 +489,11 @@ function addFieldVectors(mesh, curveType, params) {
 
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
-    // Use the continuous sweeping geometry, replacing discrete bricks
-    const pType = isPositron ? 'positron' : 'electron';
-    const geometry = createContinuousSweepGeometry(curve, 1024, tubeRadius, true, 0.0, pType);
-    const material = createGeonMaterial(isPositron ? -2.0 : 2.0, pType);
+    // Use the custom discrete vector bricks geometry
+    const geometry = createVectorBricksGeometry(curve, 100, tubeRadius, true);
+    const material = createGeonMaterial(isPositron ? -2.0 : 2.0);
     const mesh = new THREE.Mesh(geometry, material);
-
-    if(Array.isArray(pos)) mesh.position.set(...pos);
-    else mesh.position.set(0,0,0);
+    mesh.position.set(...pos);
     mesh.userData = {
         type: isPositron ? 'positron' : 'electron',
         rotationSpeed: { x: 0, y: 0, z: 0 }, // Removed rigid spin; mechanics are now strictly light propagation
@@ -620,7 +506,7 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     return mesh;
 }
 
-function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=false) {
+function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
     const curve = new LinearPhotonCurve(length);
 
     // In Light Mode, longer wavelengths disperse (spherical dilation P_exp).
@@ -628,15 +514,16 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=fals
     // Here we map SIM_STATE.lightWavelength to the expansionRate.
     const expansionRate = (SIM_STATE.lightMode) ? SIM_STATE.lightWavelength * 0.05 : 0.0;
 
-    // Free Propagating Light uses the linear sweep logic but forces twisting for circular polarization
-    const geometry = createContinuousSweepGeometry(curve, 1024, amplitude, false, expansionRate, 'linear_photon');
+    // Use the exact same discrete vector bricks as the particles
+    const geometry = createVectorBricksGeometry(curve, 100, amplitude, false, expansionRate);
 
+    // For a linear photon to show spatial waves, the "twistFactor" becomes the number
+    // of wavelengths that fit into the geometry.
+    // 100 length / (SIM_STATE.lightWavelength * 10) gives a nice number of propagating waves
     const waveFreq = 100.0 / (SIM_STATE.lightWavelength * 10.0);
-    const material = createGeonMaterial(waveFreq, 'linear_photon');
+    const material = createGeonMaterial(waveFreq); // Re-purpose twist for spatial wave freq
     const mesh = new THREE.Mesh(geometry, material);
-
-    if(Array.isArray(pos)) mesh.position.set(...pos);
-    else mesh.position.set(0,0,0);
+    mesh.position.set(...pos);
     mesh.userData = { type: 'linear_photon', length, amplitude, origin: pos, curveType: 'linear' };
 
     addFieldVectors(mesh, 'linear', { length, amplitude });
@@ -645,22 +532,14 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=fals
     return mesh;
 }
 
-function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false, isAntimatter=false) {
+function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
-
-    let pType = 'proton';
-    if (isNeutral) pType = 'neutron';
-    if (isAntimatter) pType = 'antiproton';
-
-    // AAA Refinement: Trefoil requires 512 samples for smooth geometry
-    const geometry = createContinuousSweepGeometry(curve, 512, tubeRadius, true, 0.0, pType);
-    const material = createGeonMaterial(3.0, pType);
+    // Use the custom discrete vector bricks geometry
+    const geometry = createVectorBricksGeometry(curve, 120, tubeRadius, true);
+    const material = createGeonMaterial(3.0, isNeutral);
     const mesh = new THREE.Mesh(geometry, material);
-
-    if(Array.isArray(pos)) mesh.position.set(...pos);
-    else mesh.position.set(0,0,0);
-
-    mesh.userData = { type: pType, rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
+    mesh.position.set(...pos);
+    mesh.userData = { type: isNeutral ? 'neutron' : 'proton', rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
 
     addFieldVectors(mesh, 'trefoil', { radius, tubeRadius });
     scene.add(mesh);
@@ -947,8 +826,8 @@ window.switchPhenomenon = (type) => {
 
     if (SIM_STATE.lightMode) {
         // OVERRIDE: If Light Mode is on, just show raw light waves
-        // Length 40, amplitude 1.5. Center it nicely ahead of the camera.
-        renderLinearPhoton(40, 1.5, [-20, 0, 0]);
+        // Make it huge (length 100, amplitude 10) so the expansion is very obvious
+        renderLinearPhoton(100, 10, [-50, 0, 0]);
         return;
     }
 
@@ -957,12 +836,7 @@ window.switchPhenomenon = (type) => {
     } else if (type === 'electron') {
         renderElectron(4.0, 0.4);
     } else if (type === 'proton') {
-        // Proton (Left)
-        renderProton(0.2, 0.05, [-1, 0, 0], false);
-        // Neutron (Center)
-        renderProton(0.2, 0.05, [0, 0, 0], true);
-        // Anti-Proton (Right)
-        renderProton(0.2, 0.05, [1, 0, 0], false, true);
+        renderProton(0.2, 0.05);
     } else if (type === 'hydrogen') {
         packNucleus(1, 0, 0.1);
         addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 2.0, [0, 0, 0]);
@@ -1165,13 +1039,8 @@ function goToStep(index) {
     window.switchPhenomenon(step.id);
 
     // Set camera position instantly for the new step to allow free observation
-    if(step.cameraPos && !SIM_STATE.lightMode) {
+    if(step.cameraPos) {
         camera.position.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
-        controls.target.set(0,0,0);
-        controls.update();
-    } else if (SIM_STATE.lightMode) {
-        // Light mode camera setting
-        camera.position.set(0, 0, 45);
         controls.target.set(0,0,0);
         controls.update();
     }
@@ -1239,17 +1108,8 @@ chkLightMode.addEventListener('change', (e) => {
     SIM_STATE.lightMode = e.target.checked;
     if (SIM_STATE.lightMode) {
         lightEditorHud.classList.remove('hidden');
-        camera.position.set(0, 0, 45);
-        controls.target.set(0,0,0);
-        controls.update();
     } else {
         lightEditorHud.classList.add('hidden');
-        const step = tourSteps[currentStepIndex];
-        if(step.cameraPos) {
-            camera.position.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
-            controls.target.set(0,0,0);
-            controls.update();
-        }
     }
     // Refresh current step to apply visual override
     window.switchPhenomenon(tourSteps[currentStepIndex].id);
@@ -1321,7 +1181,7 @@ function animate() {
     const rawDt = clock.getDelta();
     if(SIM_STATE.paused) {
         controls.update();
-        composer.render();
+        renderer.render(scene, camera);
         return;
     }
 
@@ -1426,16 +1286,16 @@ function animate() {
 
                 // Use the custom discrete vector bricks geometry
                 const linearCurve = new LinearJetCurve();
-                const g1 = createContinuousSweepGeometry(linearCurve, 128, hTube, false, 0.0, 'linear_photon');
-                const m1 = createGeonMaterial(2.0, 'linear_photon');
+                const g1 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
+                const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
                 mesh1.position.set(0, 0, 0);
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = createContinuousSweepGeometry(linearCurve, 128, hTube, false, 0.0, 'linear_photon');
-                const m2 = createGeonMaterial(-2.0, 'linear_photon');
+                const g2 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
+                const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
                 mesh2.position.set(0, 0, 0);
@@ -1467,8 +1327,8 @@ function animate() {
         // Wavelength, Expansion, and Propagation are handled statically by createVectorBricksGeometry
         // and animated by uTime in the fragment shader.
 
-        if(mesh.material && mesh.material.userData && mesh.material.userData.shader) {
-            mesh.material.userData.shader.uniforms.uTime.value = time;
+        if(mesh.material && mesh.material.uniforms) {
+            mesh.material.uniforms.uTime.value = time;
         }
 
         // Vectors
@@ -1481,8 +1341,8 @@ function animate() {
         } else {
            // Also do child meshes in group for materials
            mesh.traverse((child) => {
-               if(child.isMesh && child.material && child.material.userData && child.material.userData.shader) {
-                   child.material.userData.shader.uniforms.uTime.value = time;
+               if(child.isMesh && child.material && child.material.uniforms) {
+                   child.material.uniforms.uTime.value = time;
                }
            });
         }
@@ -1577,8 +1437,8 @@ function animate() {
             orbiter.mesh.lookAt(nextPos);
         }
 
-        if(orbiter.mesh.material && orbiter.mesh.material.userData && orbiter.mesh.material.userData.shader) {
-            orbiter.mesh.material.userData.shader.uniforms.uTime.value = time;
+        if(orbiter.mesh.material && orbiter.mesh.material.uniforms) {
+            orbiter.mesh.material.uniforms.uTime.value = time;
         }
         updateFieldVectors(orbiter.mesh, time);
 
@@ -1600,7 +1460,7 @@ function animate() {
     });
 
     controls.update();
-    composer.render();
+    renderer.render(scene, camera);
 }
 animate();
 
@@ -1609,5 +1469,5 @@ window.addEventListener('resize', () => {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
-    composer.setSize(container.clientWidth, container.clientHeight);
 });
+// Reverted to discrete vector bricks and introductory sequence
