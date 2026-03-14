@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 // --- STATE: ENGINE CONTROLS ---
 const SIM_STATE = {
@@ -20,103 +23,124 @@ const tourSteps = [
         title: '1. The Casimir Vacuum Fluid',
         desc: 'The baseline simulation environment is a hyper-elastic, zero-point tensor fluid. Electromagnetic waves displace this vacuum. (1 Unit = 1 Femtometer)',
         math: [
-            { label: 'Kinematic Action Viscosity', expr: 'h = 6.62607 \times 10^{-34} \text{ kg}\\cdot\\text{m}^2/\\text{s}' },
+            { label: 'Kinematic Action Viscosity', expr: 'h = 6.62607 \\times 10^{-34} \\text{ kg}\\cdot\\text{m}^2/\\text{s}' },
             { label: 'Gravitation (Casimir Pressure Gradient)', expr: 'G = \\frac{P_{vac}\\sigma^{2}}{4\\pi m_{p}^{2}}' }
         ],
         features: ['Zero-point tensor fluid', 'Geons displace vacuum', 'Geometric shadowing causes gravity'],
-        cameraPos: { x: 0, y: 0, z: 1000 },
+        cameraPos: { x: 0, y: 0, z: 10 },
     },
     {
-        id: 'em_linear',
-        title: '2. EM Waves: Linear & Polarized',
-        desc: 'Linear and polarized electromagnetic waves propagating through the vacuum. Rectangular cross-sections represent the orthogonal points of amplitude of E and B fields.',
+        id: 'electron',
+        title: '2. Leptonic Architecture: The Electron',
+        desc: 'Leptons are constructed from a continuous 1D circularly polarized photon track trapped in a stable quantum orbit. The 4π topological twist generates a macroscopic negative monopole and intrinsic spin-1/2.',
         math: [
-            { label: 'Linear Propagation', expr: 'E(x,t) = E_0 \\sin(kx - \\omega t)' }
-        ],
-        features: ['Orthogonal Electric/Magnetic vectors', 'Pure linear propagation', 'Amplitude visualization'],
-        cameraPos: { x: 0, y: 0, z: 200 },
-    },
-    {
-        id: 'em_circular',
-        title: '3. EM Waves: Circular & Elliptical',
-        desc: 'Circularly and elliptically polarized electromagnetic waves where the amplitude cubes rotate around the propagation axis, effectively mapping a continuous Möbius trajectory.',
-        math: [
-            { label: 'Circular Twist', expr: 'E(z,t) = E_0 (\\cos(kz-\\omega t)\\hat{x} + \\sin(kz-\\omega t)\\hat{y})' }
-        ],
-        features: ['Rotating rectangular amplitudes', 'Helical spatial projection', 'Möbius loop phase completion'],
-        cameraPos: { x: 0, y: 0, z: 200 },
-    },
-    {
-        id: 'leptons',
-        title: '4. Leptons: Electron & Positron',
-        desc: 'The electron is a circularly polarized wave trapped in a stable quantum orbit. Its inverse geometric chirality forms the Positron.',
-        math: [
+            { label: 'Compton Wavelength Confinement', expr: '4\\pi r = \\lambda_c' },
             { label: 'Structural Radius', expr: 'r = \\frac{\\hbar}{2m_e c} = 193.0796 \\text{ fm}' },
-            { label: 'Casimir Confinement', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2}' }
+            { label: 'Casimir Confinement Pressure', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2} \\equiv \\frac{m_e c^2}{r}' },
         ],
-        features: ['4π (720°) Möbius double-loop', 'Macroscopic 193 fm radius', 'Anti-matter chirality inversion'],
-        cameraPos: { x: 0, y: 0, z: 1000 },
+        features: ['4π (720°) twisted Möbius double-loop', 'Macroscopically massive boundary (193 fm radius)', 'Explains Dirac g=2 anomaly geometrically'],
+        cameraPos: { x: 0, y: 0, z: 10 },
     },
     {
-        id: 'hadrons',
-        title: '5. Hadrons: Proton, Neutron & Antimatter',
-        desc: 'Nucleons distribute angular momentum in 3D using a compressed Trefoil knot (0.84 fm). Neutrons are phase-shifted variants. Antimatter inverts the knot chirality.',
+        id: 'proton',
+        title: '3. Hadronic Architecture: The Proton',
+        desc: 'Nucleons require a 3D architecture to distribute angular momentum. Compressed by 178,700 N of vacuum pressure, the resulting Trefoil knot is physically ~230x smaller than the electron orbit.',
         math: [
             { label: 'Resting Radius', expr: 'R_p = \\frac{4\\hbar}{m_p c} = 0.8412 \\text{ fm}' },
-            { label: 'Inward Vacuum Pressure', expr: '178,700 \\text{ N}' }
+            { label: 'Inward Vacuum Pressure', expr: 'F_{vac} = \\frac{4\\hbar c}{R_p^2}' },
         ],
-        features: ['(3,2)-Torus knot (Trefoil)', 'Sub-femtometer density', 'Geometric +1e derivation via twists'],
-        cameraPos: { x: 0, y: 0, z: 3.5 },
+        features: ['(3,2)-Torus knot (Trefoil knot)', 'Sub-femtometer density (0.84 fm radius)', 'Integrates to +1e via two outward twists (+2/3e) and one inward (-1/3e)'],
+        cameraPos: { x: 0, y: 0, z: 6 },
     },
     {
         id: 'hydrogen',
-        title: '6. Atoms: Hydrogen',
-        desc: 'A tiny 0.84 fm proton anchoring a 193 fm electron. Bohr radius is ~52,900 fm. Showcases massive orbital scale and Coulomb attraction.',
+        title: '4. The Hydrogen Atom (Protium)',
+        desc: 'A tiny, dense 0.84 fm proton anchoring an enormous 193 fm electron at a massive distance. The Bohr radius (a0) is ~52,900 fm. This is the true, staggering geometric scale.',
         math: [
-            { label: 'Bohr Orbit', expr: 'a_0 \\approx 52,900 \\text{ fm}' }
+            { label: 'Gravitational Shadowing', expr: 'G = \\frac{P_{vac}\\sigma^{2}}{4\\pi m_{p}^{2}}' },
         ],
-        features: ['Proton core', 'Dynamic orbiting electron', 'Relativistic kinematics'],
+        features: ['Central dense Trefoil knot (0.84 fm core)', '1 massive-scale orbiting Möbius loop (193 fm)', '52,900 fm physical orbit'],
         cameraPos: { x: 0, y: 0, z: 120000 },
     },
     {
         id: 'deuterium',
-        title: '7. Atoms: Deuterium',
-        desc: 'Proton and Neutron tightly bound in an FCC lattice at 2.2 fm. Electron orbits externally.',
+        title: '5. Deuterium Atom (Heavy Hydrogen)',
+        desc: 'A proton and neutron tightly bound via intersecting geometric repulsions at ~2 fm separation, forming an FCC lattice core. The neutron is structurally identical but phase-shifted.',
         math: [
-            { label: 'Nuclear Boundary Repulsion', expr: 'k \\approx 212,600 \\text{ N/fm}' }
+            { label: 'Nuclear Boundary Repulsion', expr: 'k \\approx 212,600 \\text{ N/fm}' },
         ],
-        features: ['Proton/Neutron dual-core', 'Phase-shifted topologies', '52,900 fm physical orbit'],
+        features: ['1 Proton / 1 Neutron dual-core (2.2 fm spacing)', 'Independent 3D hadron orientations', '52,900 fm physical orbit'],
         cameraPos: { x: 0, y: 0, z: 120000 },
     },
     {
         id: 'water',
-        title: '8. Atoms: Water Molecule (H₂O)',
-        desc: 'Two hydrogen cores bound dynamically to an Oxygen core. The hydrogens are physically free and interacting via Lorentz forces and EM repulsions.',
+        title: '6. Water Molecule (H₂O) & Polarization',
+        desc: 'Two hydrogen cores bound at ~95,840 fm distance to an Oxygen core at exactly 104.5°. 10 massive electrons repel each other dynamically in real-time across vast empty space.',
         math: [
-            { label: 'Lorentz Force', expr: 'F = q(E + v \\times B)' }
+            { label: 'Refractive Delay', expr: 'n = \\frac{c}{v_m} = 1 + (N_v \\cdot c \\cdot \\sigma \\cdot \\Delta t)' }
         ],
-        features: ['Dynamic unbound hydrogens', 'Real-time n-body attracting & repelling', 'Free camera observation'],
+        features: ['Oxygen-16 core (8p, 8n)', '2 Protons strictly bonded at 104.5° (95,840 fm)', '10 dynamically repelling Electrons (Real-time n-body)'],
         cameraPos: { x: 0, y: 0, z: 250000 },
     },
     {
         id: 'gold',
-        title: '9. Atoms: Gold',
-        desc: 'A massive Casimir well of 197 packed nucleons (radius ~6 fm). 79 massive electrons dynamically repel in high-density Schrödinger probability clouds.',
+        title: '7. The Gold Atom (Au) & Probability Clouds',
+        desc: 'A massive Casimir well of 197 packed nucleons (radius ~6 fm). 79 macroscopically massive electrons (193 fm each) repel one another in complex shells spanning hundreds of thousands of femtometers.',
         math: [
-            { label: 'Relativistic Shell Compression', expr: '\\gamma = \\frac{1}{\\sqrt{1 - (Z\\alpha)^2}}' }
+            { label: 'Relativistic Absorption Shift', expr: '\\gamma = \\frac{1}{\\sqrt{1 - (v/c)^2}}' }
         ],
-        features: ['Dense FCC packed core', 'Schrödinger probability trails', 'High relativistic velocities'],
+        features: ['79 Protons / 118 Neutrons packed (197 nucleons, 6 fm)', '79 massive repelling electrons', 'High relativistic velocities in deeply bound shells'],
         cameraPos: { x: 0, y: 0, z: 800000 },
+    },
+    {
+        id: 'annihilation',
+        title: '8. Positron-Electron Annihilation',
+        desc: 'An electron meets its geometric inverse. Their mirrored chiralities cause absolute destructive interference upon collision, shattering the vacuum lock and unspooling into gamma radiation.',
+        math: [
+            { label: 'Annihilation Threshold', expr: 'E_{crit} = 1.02199 \\text{ MeV}' },
+        ],
+        features: ['Electron (Twist +2)', 'Positron (Twist -2)', 'Unspools into pure linear photons upon impact'],
+        cameraPos: { x: 0, y: 0, z: 3000 },
+    },
+    {
+        id: 'gravity',
+        title: '9. Casimir Gravity & Tidal Locking',
+        desc: 'Gravity is not curved space; it is the Casimir pressure gradient formed by geometric shadowing. When two macroscopic bodies overlap shadows, the vacuum pushes them together. Close proximity induces tidal locking (face-to-face alignment) of their internal topologies.',
+        math: [
+            { label: 'Gravitational Force', expr: 'F_g = \\frac{G m_1 m_2}{r^2}' }
+        ],
+        features: ['Massive Body 1 (Earth analog)', 'Massive Body 2 (Moon analog)', 'Tidally locked orbiting topologies'],
+        cameraPos: { x: 0, y: 0, z: 150000000 },
     },
     {
         id: 'custom',
         title: '10. Custom Atomic Builder',
-        desc: 'Input true nucleon counts. The engine packs the core and spawns electrons that form organic shells via n-body Coulombic repulsion.',
+        desc: 'Input true nucleon counts. The engine geometrically packs the sub-femtometer core and generates valence shells where massive electrons organically form orbits via n-body Coulombic repulsion.',
         math: [
-            { label: 'Core Packing Volume', expr: 'V = \\frac{4}{3}\\pi (R_p \\sqrt[3]{A})^3' }
+            { label: 'Nuclear Core Packing Volume', expr: 'V = \\frac{4}{3}\\pi (R_p \\sqrt[3]{A})^3' }
         ],
-        features: ['Sub-femtometer FCC Core Builder', 'Real-time electron shells', 'Dynamic physical scaling'],
+        features: ['Sub-femtometer FCC Core Builder', 'Real-time massive electron Coulombic repulsion', 'Dynamic physical scale rendering'],
         cameraPos: { x: 0, y: 0, z: 200000 },
+    },
+    {
+        id: 'quasar',
+        title: '11. The Gezin Radius & Quasar Emission',
+        desc: 'A shadow cannot exceed 100% opacity. The absolute boundary of gravitational collapse occurs at the Gezin Radius. Mass exceeding this limit crushes into a "Super-Neutron" and phase-annihilates, violently ejecting continuous gamma radiation jets (Quasars).',
+        math: [
+            { label: 'The Gezin Radius', expr: 'R_{gezin} = R_p \\sqrt[3]{\\frac{M}{m_p}}' }
+        ],
+        features: ['Super-massive collapsed core', 'Matter accretion disk', 'Bi-polar linear gamma radiation jets (Quasar)'],
+        cameraPos: { x: 0, y: 200, z: 200000 },
+    },
+    {
+        id: 'scattering',
+        title: '12. Electron Light-by-Light Scattering',
+        desc: 'Because electrons are entirely composed of trapped light, scattering an electron is fundamentally a light-by-light interaction. An incoming linear photon collides, geometrically deflecting both bodies.',
+        math: [
+            { label: 'Compton Scattering Shift', expr: '\\Delta\\lambda = \\frac{h}{m_e c}(1 - \\cos\\theta)' }
+        ],
+        features: ['Target Geon (193 fm Electron)', 'Incoming Linear Photon (Gamma/X-ray)', 'Geometric Momentum Transfer Deflection'],
+        cameraPos: { x: 0, y: 0, z: 1500 },
     }
 ];
 
@@ -132,112 +156,6 @@ const SCALE = {
 };
 
 // --- SHADERS ---
-const particleVertexShader = `
-attribute float edgeCoord;
-varying vec2 vUv;
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying float vEdgeCoord;
-void main() {
-  vUv = uv;
-  vPosition = position;
-  vNormal = normalize(normalMatrix * normal);
-  vEdgeCoord = edgeCoord;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}`;
-
-const particleFragmentShader = `
-uniform float uTime;
-uniform vec3 colorEPlus;   // Green
-uniform vec3 colorEMinus;  // Red
-uniform vec3 colorBPlus;   // Purple
-uniform vec3 colorBMinus;  // Yellow
-uniform float uTwistFactor;
-uniform float isLinear;
-
-varying vec2 vUv;
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying float vEdgeCoord;
-
-// Helper function to continuously interpolate between 4 colors around a wheel
-vec3 getContinuousPhaseColor(float phase) {
-    // Normalize phase to 0 -> 4.0
-    float p = mod(phase, 6.28318530718) / 1.57079632679;
-
-    // Smoothstep for non-linear, punchy color transitions
-    float f = smoothstep(0.0, 1.0, fract(p));
-
-    if (p < 1.0) {
-        return mix(colorEPlus, colorBPlus, f);      // +E (Green) -> +B (Purple)
-    } else if (p < 2.0) {
-        return mix(colorBPlus, colorEMinus, f);     // +B (Purple) -> -E (Red)
-    } else if (p < 3.0) {
-        return mix(colorEMinus, colorBMinus, f);    // -E (Red) -> -B (Yellow)
-    } else {
-        return mix(colorBMinus, colorEPlus, f);     // -B (Yellow) -> +E (Green)
-    }
-}
-
-void main() {
-    // vUv.y strictly defines the geometric face angle around the tube
-    // 0.25 = +E face (PI/2), 0.75 = -E face (3PI/2)
-    // 0.00 = +B face (0),    0.50 = -B face (PI)
-    float faceAngle = vUv.y * 6.28318530718;
-
-    // Propagate wave along the length of the tube (vUv.x) via uTime to simulate light speed
-    float propagation = uTime * 20.0;
-
-    // Combine structural twist, propagation, and the local face angle to get the absolute field phase
-    float localPhase = vUv.x * uTwistFactor * 6.28318530718 - propagation;
-
-    vec3 baseColor;
-
-    // The user explicitly requested mathematical EM field vector colors mapping directly to the geometric faces of the "square" tube.
-    // 0.25 = Top (+E, Green)
-    // 0.75 = Bottom (-E, Red)
-    // 0.00 = Right (+B, Purple)
-    // 0.50 = Left (-B, Yellow)
-
-    // We determine the face strictly by rounding vUv.y to the nearest 0.25 step, ignoring longitudinal phase mixing
-    // so the "cubes are constant" and mathematically represent the vectors.
-
-    if (abs(vUv.y - 0.25) < 0.1) {
-        baseColor = colorEPlus;
-    } else if (abs(vUv.y - 0.75) < 0.1) {
-        baseColor = colorEMinus;
-    } else if (abs(vUv.y - 0.0) < 0.1 || abs(vUv.y - 1.0) < 0.1) { // 0.0 or 1.0
-        baseColor = colorBPlus;
-    } else if (abs(vUv.y - 0.5) < 0.1) {
-        baseColor = colorBMinus;
-    } else {
-        // Fallback (front/back caps, or edges)
-        baseColor = vec3(0.5, 0.5, 0.5);
-    }
-
-    // Draw black lines to mark the peaks/minimums of the field strength
-    // We use the vEdgeCoord varying which sweeps from -1 to 1 across the width of each face
-    // 0 is exactly the center of the face
-    float lineDist = abs(vEdgeCoord);
-
-    // If we are very close to the center of a face (and not on an endcap), output black
-    if (lineDist < 0.05 && vUv.y < 0.9) {
-        baseColor = vec3(0.0, 0.0, 0.0); // True black
-    }
-
-    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
-    float diff = max(dot(vNormal, lightDir), 0.0);
-    float ambient = 0.5;
-    // Flat/matte shading, no artificial glow
-    vec3 finalColor = baseColor * (diff * 0.5 + ambient);
-
-    // Ensure the black lines stay perfectly black without getting washed out by ambient light
-    if (lineDist < 0.05 && vUv.y < 0.9) {
-        finalColor = vec3(0.0, 0.0, 0.0);
-    }
-
-    gl_FragColor = vec4(finalColor, 1.0);
-}`;
 
 // --- CURVES ---
 class LinearPhotonCurve extends THREE.Curve {
@@ -303,12 +221,12 @@ class TrefoilCurve extends THREE.Curve {
 // --- SETUP SCENE ---
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-// scene.background = new THREE.Color(0x020205); // Let CSS handle the background gradient
+scene.background = new THREE.Color(0x020205);
 
 const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1e9);
 camera.position.z = 10;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 container.appendChild(renderer.domElement);
@@ -316,11 +234,35 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
+// Post-Processing (Bloom)
+const renderScene = new RenderPass(scene, camera);
+const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(container.clientWidth, container.clientHeight),
+    0.15,  // strength
+    0.4,   // radius
+    0.95   // threshold
+);
+const composer = new EffectComposer(renderer);
+composer.addPass(renderScene);
+composer.addPass(bloomPass);
+
 // Lighting
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const pointLight = new THREE.PointLight(0xffffff, 1);
 pointLight.position.set(10, 10, 10);
 scene.add(pointLight);
+
+// Stars
+const starsGeometry = new THREE.BufferGeometry();
+const starsCount = 3000;
+const posArray = new Float32Array(starsCount * 3);
+for(let i = 0; i < starsCount * 3; i++) {
+    posArray[i] = (Math.random() - 0.5) * 2000;
+}
+starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+const starsMaterial = new THREE.PointsMaterial({ size: 0.5, color: 0xffffff, transparent: true, opacity: 0.5 });
+const starsMesh = new THREE.Points(starsGeometry, starsMaterial);
+scene.add(starsMesh);
 
 // --- PARTICLE FACTORIES & VECTORS ---
 let currentMeshes = [];
@@ -328,6 +270,7 @@ let currentOrbiters = []; // Track electrons that orbit the nucleus
 let time = 0;
 let annihilated = false;
 
+// Function to generate discrete square sections (bricks) along a curve
 // Function to compute Bishop (Parallel Transport) Frames
 function computeBishopFrames(curve, segments, closed) {
     // Generate parallel transport frames to avoid Frenet-Serret pinching/twisting
@@ -393,13 +336,12 @@ function computeBishopFrames(curve, segments, closed) {
 }
 
 // Function to generate continuous swept sections along a curve
-
-function createContinuousSweepGeometry(curve, segments, radius, closed=true, expansionRate=0.0, twistAngle=0.0) {
+function createContinuousSweepGeometry(curve, segments, radius, closed=true, expansionRate=0.0, particleType='electron') {
     const geom = new THREE.BufferGeometry();
     const positions = [];
-    const normals = [];
+    const colors = [];
     const uvs = [];
-    const edgeCoords = [];
+    const indices = [];
 
     // Extract evenly spaced points and their mathematical frames using Bishop frame
     const points = curve.getSpacedPoints(segments);
@@ -407,7 +349,15 @@ function createContinuousSweepGeometry(curve, segments, radius, closed=true, exp
 
     const ringVertices = [];
 
-    for (let i = 0; i <= segments; i++) {
+    const colorEPlus = new THREE.Color('#00E676');
+    const colorEMinus = new THREE.Color('#D50000');
+    const colorBPlus = new THREE.Color('#651FFF');
+    const colorBMinus = new THREE.Color('#FFAB00');
+
+    // We only generate vertices up to `segments - 1` if closed, to ensure perfect indexing wrap-around.
+    const loopMax = closed ? segments - 1 : segments;
+
+    for (let i = 0; i <= loopMax; i++) {
         const pt = points[i];
         const T = frames.tangents[i];
 
@@ -417,121 +367,195 @@ function createContinuousSweepGeometry(curve, segments, radius, closed=true, exp
         let N = frames.normals[i].clone().normalize();
         let B_vec = frames.binormals[i].clone().normalize();
 
-        if (twistAngle !== 0.0) {
-            // Physically twist the vectors around the tangent for circular polarization
-            const phase = (i / segments) * twistAngle;
+        let twistAngle = 0.0;
+
+        if (particleType === 'proton' || particleType === 'neutron' || particleType === 'antiproton') {
+            twistAngle = Math.PI * 4.0;
+        } else if (particleType === 'electron' || particleType === 'positron') {
+            twistAngle = Math.PI * 4.0;
+        } else if (particleType === 'linear_photon') {
+            twistAngle = Math.PI * (4.0 / Math.max(0.1, SIM_STATE.lightWavelength));
+        }
+
+        if (particleType === 'positron' || particleType === 'antiproton') {
+            twistAngle *= -1.0;
+        }
+
+        const tParam = i / segments;
+
+        if (particleType === 'proton' || particleType === 'antiproton') {
+            if (tParam > 0.6) {
+                const blend = THREE.MathUtils.smoothstep(tParam, 0.6, 0.75);
+                twistAngle += blend * Math.PI;
+            }
+        } else if (particleType === 'neutron') {
+            if (tParam > 0.3) {
+                const blend = THREE.MathUtils.smoothstep(tParam, 0.3, 0.45);
+                twistAngle += blend * Math.PI;
+            }
+        }
+
+        if (twistAngle !== 0.0 || (particleType === 'linear_photon' && SIM_STATE.lightPolarization !== 0)) {
+            let phase = tParam * twistAngle;
+            if (particleType === 'linear_photon') {
+                phase += THREE.MathUtils.degToRad(SIM_STATE.lightPolarization);
+            }
+
             const cosP = Math.cos(phase);
             const sinP = Math.sin(phase);
 
-            // Rotate N and B_vec around T
             const newN = new THREE.Vector3().addScaledVector(N, cosP).addScaledVector(B_vec, sinP).normalize();
             const newB = new THREE.Vector3().crossVectors(T, newN).normalize();
             N = newN;
             B_vec = newB;
         }
 
-        const isSquare = twistAngle !== 0.0;
-        const E_mag = isSquare ? currentRadius * 1.5 : currentRadius * 2.0;
-        const B_mag = isSquare ? currentRadius * 1.5 : currentRadius * 0.2; // Thin in B direction for linear
+        const E_mag = currentRadius * 1.5;
+        const B_mag = currentRadius * 1.5;
 
         const E = N.clone().multiplyScalar(E_mag);
         const B = B_vec.clone().multiplyScalar(B_mag);
 
-        // 4 Corners of the rectangle
         const c0 = pt.clone().add(E).add(B); // Top-Right (+E, +B)
         const c1 = pt.clone().add(E).sub(B); // Top-Left (+E, -B)
         const c2 = pt.clone().sub(E).sub(B); // Bottom-Left (-E, -B)
         const c3 = pt.clone().sub(E).add(B); // Bottom-Right (-E, +B)
 
-        ringVertices.push({
-            c0, c1, c2, c3, N: N.clone(), B_vec: B_vec.clone()
-        });
+        ringVertices.push({ c0, c1, c2, c3, u: tParam });
     }
 
-    function addQuad(v0, v1, v2, v3, norm, u0, u1, uvY) {
-        // v0: left, v1: left(next), v2: right(next), v3: right (in local face coords)
+    // Construct distinct faces with hard edges (by duplicating vertices per face), but shared along the length (for smooth shading)
+    for (let i = 0; i <= loopMax; i++) {
+        const r = ringVertices[i];
 
-        // Triangle 1: v0, v2, v1
-        positions.push(...v0, ...v2, ...v1);
-        normals.push(...norm, ...norm, ...norm);
-        uvs.push(u0, uvY, u1, uvY, u1, uvY);
-        edgeCoords.push(-1.0, 1.0, -1.0);
+        // Face 1: Top (+E) [c1, c0]
+        positions.push(...r.c1.toArray(), ...r.c0.toArray());
+        colors.push(colorEPlus.r, colorEPlus.g, colorEPlus.b, colorEPlus.r, colorEPlus.g, colorEPlus.b);
+        uvs.push(r.u, 0.25, r.u, 0.25);
 
-        // Triangle 2: v0, v3, v2
-        positions.push(...v0, ...v3, ...v2);
-        normals.push(...norm, ...norm, ...norm);
-        uvs.push(u0, uvY, u0, uvY, u1, uvY);
-        edgeCoords.push(-1.0, 1.0, 1.0);
+        // Face 2: Bottom (-E) [c3, c2]
+        positions.push(...r.c3.toArray(), ...r.c2.toArray());
+        colors.push(colorEMinus.r, colorEMinus.g, colorEMinus.b, colorEMinus.r, colorEMinus.g, colorEMinus.b);
+        uvs.push(r.u, 0.75, r.u, 0.75);
+
+        // Face 3: Right (+B) [c0, c3]
+        positions.push(...r.c0.toArray(), ...r.c3.toArray());
+        colors.push(colorBPlus.r, colorBPlus.g, colorBPlus.b, colorBPlus.r, colorBPlus.g, colorBPlus.b);
+        uvs.push(r.u, 0.0, r.u, 0.0);
+
+        // Face 4: Left (-B) [c2, c1]
+        positions.push(...r.c2.toArray(), ...r.c1.toArray());
+        colors.push(colorBMinus.r, colorBMinus.g, colorBMinus.b, colorBMinus.r, colorBMinus.g, colorBMinus.b);
+        uvs.push(r.u, 0.5, r.u, 0.5);
     }
 
+    // Generate indices
     for (let i = 0; i < segments; i++) {
-        const r1 = ringVertices[i];
-        const r2 = ringVertices[i+1];
+        const row0 = i * 8;
+        let row1 = (i + 1) * 8;
 
-        const u0 = i / segments;
-        const u1 = (i + 1) / segments;
+        if (closed && i === segments - 1) {
+            row1 = 0; // Wrap around to the start to perfectly weld the geometry
+        }
 
-        // Top Face (+E), normal is N
-        // v0: r1.c1, v1: r2.c1, v2: r2.c0, v3: r1.c0
-        addQuad(r1.c1.toArray(), r2.c1.toArray(), r2.c0.toArray(), r1.c0.toArray(), r1.N.toArray(), u0, u1, 0.25);
+        function addQuad(v0, v1, v2, v3) {
+            indices.push(v0, v1, v2);
+            indices.push(v0, v2, v3);
+        }
 
-        // Bottom Face (-E), normal is -N
-        // v0: r1.c3, v1: r2.c3, v2: r2.c2, v3: r1.c2
-        addQuad(r1.c3.toArray(), r2.c3.toArray(), r2.c2.toArray(), r1.c2.toArray(), r1.N.clone().negate().toArray(), u0, u1, 0.75);
-
-        // Right Face (+B), normal is B_vec
-        // v0: r1.c0, v1: r2.c0, v2: r2.c3, v3: r1.c3
-        addQuad(r1.c0.toArray(), r2.c0.toArray(), r2.c3.toArray(), r1.c3.toArray(), r1.B_vec.toArray(), u0, u1, 0.0);
-
-        // Left Face (-B), normal is -B_vec
-        // v0: r1.c2, v1: r2.c2, v2: r2.c1, v3: r1.c1
-        addQuad(r1.c2.toArray(), r2.c2.toArray(), r2.c1.toArray(), r1.c1.toArray(), r1.B_vec.clone().negate().toArray(), u0, u1, 0.5);
+        // Top Face
+        addQuad(row0 + 0, row0 + 1, row1 + 1, row1 + 0);
+        // Bottom Face
+        addQuad(row0 + 2, row0 + 3, row1 + 3, row1 + 2);
+        // Right Face
+        addQuad(row0 + 4, row0 + 5, row1 + 5, row1 + 4);
+        // Left Face (offset 7 is c1 (Top), offset 6 is c2 (Bottom))
+        addQuad(row0 + 7, row0 + 6, row1 + 6, row1 + 7);
     }
 
-    // Caps if not closed
+    // Cap ends if not closed
     if (!closed) {
-        const rStart = ringVertices[0];
-        const normStart = frames.tangents[0].clone().negate();
-        addQuad(rStart.c1.toArray(), rStart.c0.toArray(), rStart.c3.toArray(), rStart.c2.toArray(), normStart.toArray(), 0, 0, 0.99);
+        // Start cap
+        const startR = ringVertices[0];
+        const scOffset = positions.length / 3;
+        positions.push(...startR.c1.toArray(), ...startR.c0.toArray(), ...startR.c3.toArray(), ...startR.c2.toArray());
+        for(let j=0; j<4; j++) { colors.push(0.5, 0.5, 0.5); uvs.push(0, 0); }
+        // Start cap: c1, c0, c3, c2
+        indices.push(scOffset, scOffset+2, scOffset+1);
+        indices.push(scOffset, scOffset+3, scOffset+2);
 
-        const rEnd = ringVertices[segments];
-        const normEnd = frames.tangents[segments].clone();
-        addQuad(rEnd.c0.toArray(), rEnd.c1.toArray(), rEnd.c2.toArray(), rEnd.c3.toArray(), normEnd.toArray(), 1, 1, 0.99);
+        // End cap: c0, c1, c2, c3
+        const endR = ringVertices[segments];
+        const ecOffset = positions.length / 3;
+        positions.push(...endR.c0.toArray(), ...endR.c1.toArray(), ...endR.c2.toArray(), ...endR.c3.toArray());
+        for(let j=0; j<4; j++) { colors.push(0.5, 0.5, 0.5); uvs.push(1, 1); }
+        indices.push(ecOffset, ecOffset+1, ecOffset+2);
+        indices.push(ecOffset, ecOffset+2, ecOffset+3);
     }
 
     geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geom.setAttribute('edgeCoord', new THREE.Float32BufferAttribute(edgeCoords, 1));
+    geom.setIndex(indices);
+
+    // AAA Refinement: Smooth Vertex Normals
+    // This perfectly calculates smooth lighting along the track but keeps faces separated because vertices aren't shared across corners!
+    geom.computeVertexNormals();
     geom.computeBoundingSphere();
 
     return geom;
 }
 
-
 function createGeonMaterial(twistFactor, particleType = 'electron') {
-    // Revert to strict E/B field mapping
-        const ePlus = '#00E676';   // Mint Green
-    const eMinus = '#D50000';  // Crimson Red
-    const bPlus = '#651FFF';   // Deep Violet
-    const bMinus = '#FFAB00';  // Amber/Yellow
-
-    return new THREE.ShaderMaterial({
-        vertexShader: particleVertexShader,
-        fragmentShader: particleFragmentShader,
-        uniforms: {
-            uTime: { value: 0 },
-            colorEPlus: { value: new THREE.Color(ePlus) },
-            colorEMinus: { value: new THREE.Color(eMinus) },
-            colorBPlus: { value: new THREE.Color(bPlus) },
-            colorBMinus: { value: new THREE.Color(bMinus) },
-            uTwistFactor: { value: twistFactor },
-            isLinear: { value: particleType === 'linear_photon' ? 1.0 : 0.0 },
-        },
-        side: THREE.DoubleSide,
+    const mat = new THREE.MeshStandardMaterial({
+        vertexColors: true,
         wireframe: SIM_STATE.wireframe,
-        transparent: false,
+        transparent: true,
+        opacity: 1.0,
+        side: THREE.DoubleSide,
+        depthWrite: particleType !== 'linear_photon',
+        roughness: 0.3,
+        metalness: 0.2
     });
+
+    if (particleType === 'linear_photon') {
+        mat.onBeforeCompile = function (shader) {
+            shader.uniforms.uTime = { value: 0 };
+            mat.userData.shader = shader; // Save reference so we can update uTime in animate()
+
+            shader.vertexShader = `
+                varying float vTrackPos;
+            ` + shader.vertexShader;
+
+            shader.vertexShader = shader.vertexShader.replace(
+                `#include <uv_vertex>`,
+                `#include <uv_vertex>
+                vTrackPos = uv.x;`
+            );
+
+            shader.fragmentShader = `
+                uniform float uTime;
+                varying float vTrackPos;
+            ` + shader.fragmentShader;
+
+            shader.fragmentShader = shader.fragmentShader.replace(
+                `#include <dithering_fragment>`,
+                `#include <dithering_fragment>
+                float speed = 2.0;
+                float packetPos = fract(uTime * speed);
+                float dist = abs(vTrackPos - packetPos);
+                if (dist > 0.5) dist = 1.0 - dist;
+                float packetWidth = 0.15;
+                if (dist < packetWidth) {
+                    gl_FragColor.a *= smoothstep(packetWidth, packetWidth * 0.2, dist);
+                } else {
+                    gl_FragColor.a = 0.0;
+                }
+                `
+            );
+        };
+    }
+    return mat;
 }
 
 function updateMaterialsWireframe() {
@@ -547,7 +571,7 @@ function createWaveMaterial() {
         color: 0x00ffff,
         linewidth: 2,
         transparent: true,
-        opacity: 0.3
+        opacity: 0.8
     });
 }
 
@@ -576,15 +600,14 @@ function addFieldVectors(mesh, curveType, params) {
 
 function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false) {
     const curve = new MobiusCurve(radius, tubeRadius);
-    // Use the custom discrete vector bricks geometry
-    // The twist here is geometric. By request, reducing from Math.PI * 4.0 (720 deg) to Math.PI * 2.0 (360 deg) for clearer visibility, though theory says 720.
-    const geometry = createContinuousSweepGeometry(curve, 100, tubeRadius, true, 0.0, Math.PI * 2.0);
-    const material = createGeonMaterial(isPositron ? -1.0 : 1.0, isPositron ? 'positron' : 'electron');
+    // Use the continuous sweeping geometry, replacing discrete bricks
+    const pType = isPositron ? 'positron' : 'electron';
+    const geometry = createContinuousSweepGeometry(curve, 1024, tubeRadius, true, 0.0, pType);
+    const material = createGeonMaterial(isPositron ? -2.0 : 2.0, pType);
     const mesh = new THREE.Mesh(geometry, material);
 
     if(Array.isArray(pos)) mesh.position.set(...pos);
     else mesh.position.set(0,0,0);
-
     mesh.userData = {
         type: isPositron ? 'positron' : 'electron',
         rotationSpeed: { x: 0, y: 0, z: 0 }, // Removed rigid spin; mechanics are now strictly light propagation
@@ -597,69 +620,6 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     return mesh;
 }
 
-
-// ----------------------------------------------------------------------------
-// CASIMIR VACUUM FLUID VISUALIZATION
-// ----------------------------------------------------------------------------
-function renderVacuumFluid() {
-    // 1. Render the Zero-Point Tensor Fluid (Volumetric Grid of points)
-    const range = 40;
-    const spacing = 4;
-    const geometry = new THREE.BufferGeometry();
-    const vertices = [];
-    const colors = [];
-
-    for ( let x = -range; x <= range; x += spacing ) {
-        for ( let y = -range; y <= range; y += spacing ) {
-            for ( let z = -range; z <= range; z += spacing ) {
-                vertices.push( x, y, z );
-                // Faint bluish-white for vacuum modes
-                colors.push( 0.2, 0.3, 0.5 );
-            }
-        }
-    }
-
-    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-    geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
-
-    const material = new THREE.PointsMaterial( {
-        size: 0.15,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.4,
-        blending: THREE.AdditiveBlending
-    });
-
-    const vacuumField = new THREE.Points( geometry, material );
-    vacuumField.userData.isVacuumField = true;
-    vacuumField.scale.set(3, 3, 3);
-
-    // Add a slight animation to the vacuum modes
-    vacuumField.userData.update = function(time) {
-        const positions = this.geometry.attributes.position.array;
-        const colors = this.geometry.attributes.color.array;
-        for ( let i = 0; i < positions.length; i += 3 ) {
-            const x = positions[i];
-            const y = positions[i+1];
-            const z = positions[i+2];
-
-            // Subtle quantum fluctuation
-            const fluctuation = Math.sin(x * 0.5 + time * 2.0) * Math.cos(z * 0.5 + time * 1.5) * 0.2;
-            positions[i+1] = Math.round(y/spacing)*spacing + fluctuation;
-
-            // Color pulse based on displacement
-            colors[i+1] = 0.3 + fluctuation * 0.5; // Green channel
-        }
-        this.geometry.attributes.position.needsUpdate = true;
-        this.geometry.attributes.color.needsUpdate = true;
-    };
-
-    scene.add( vacuumField );
-    currentMeshes.push( vacuumField );
-
-    renderLinearPhoton(6.0, 0.2, 0.05);
-}
-
 function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=false) {
     const curve = new LinearPhotonCurve(length);
 
@@ -668,19 +628,15 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=fals
     // Here we map SIM_STATE.lightWavelength to the expansionRate.
     const expansionRate = (SIM_STATE.lightMode) ? SIM_STATE.lightWavelength * 0.05 : 0.0;
 
-    // Use the exact same discrete vector bricks as the particles
-    const geometry = createContinuousSweepGeometry(curve, 100, amplitude, false, expansionRate, isCircular ? Math.PI * 4.0 : 0.0);
+    // Free Propagating Light uses the linear sweep logic but forces twisting for circular polarization
+    const geometry = createContinuousSweepGeometry(curve, 1024, amplitude, false, expansionRate, 'linear_photon');
 
-    // For a linear photon to show spatial waves, the "twistFactor" becomes the number
-    // of wavelengths that fit into the geometry.
-    // 100 length / (SIM_STATE.lightWavelength * 10) gives a nice number of propagating waves
     const waveFreq = 100.0 / (SIM_STATE.lightWavelength * 10.0);
-    const material = createGeonMaterial(waveFreq, 'linear_photon'); // Re-purpose twist for spatial wave freq
+    const material = createGeonMaterial(waveFreq, 'linear_photon');
     const mesh = new THREE.Mesh(geometry, material);
 
     if(Array.isArray(pos)) mesh.position.set(...pos);
     else mesh.position.set(0,0,0);
-
     mesh.userData = { type: 'linear_photon', length, amplitude, origin: pos, curveType: 'linear' };
 
     addFieldVectors(mesh, 'linear', { length, amplitude });
@@ -689,17 +645,22 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0], isCircular=fals
     return mesh;
 }
 
-function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
+function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false, isAntimatter=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
-    // Use the custom discrete vector bricks geometry
-    const geometry = createContinuousSweepGeometry(curve, 120, tubeRadius, true, 0.0, Math.PI * 4.0);
-    const material = createGeonMaterial(3.0, isNeutral ? 'neutron' : 'proton');
+
+    let pType = 'proton';
+    if (isNeutral) pType = 'neutron';
+    if (isAntimatter) pType = 'antiproton';
+
+    // AAA Refinement: Trefoil requires 512 samples for smooth geometry
+    const geometry = createContinuousSweepGeometry(curve, 512, tubeRadius, true, 0.0, pType);
+    const material = createGeonMaterial(3.0, pType);
     const mesh = new THREE.Mesh(geometry, material);
 
     if(Array.isArray(pos)) mesh.position.set(...pos);
     else mesh.position.set(0,0,0);
 
-    mesh.userData = { type: isNeutral ? 'neutron' : 'proton', rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
+    mesh.userData = { type: pType, rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
 
     addFieldVectors(mesh, 'trefoil', { radius, tubeRadius });
     scene.add(mesh);
@@ -710,8 +671,8 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
 // Function to generate an electron that physically orbits a central point
 function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRotation, dynamic=false) {
     // Enforce accurate physical scales. Electron is ~230x larger than a proton.
-    const eRadius = SCALE.ELECTRON_RADIUS;
-    const eTube = SCALE.ELECTRON_TUBE;
+    const eRadius = 4.0;
+    const eTube = 0.4;
 
     const electron = renderElectron(eRadius, eTube, [0,0,0]);
     // Remove from main static list so it doesn't get standard static rotation mixed up
@@ -720,18 +681,17 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
 
     // Create thick, additive probability cloud trail
     // We use a large number of overlapping soft points to simulate dense probability distributions over time.
-    const trailMax = 2000;
+    const trailMax = 300;
     const trailGeom = new THREE.BufferGeometry();
     const trailPositions = new Float32Array(trailMax * 3);
     trailGeom.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
 
     // Additive blending creates bright dense spots where the electron frequently visits
-    // Enhanced trail visibility as requested: larger size, higher opacity, longer tail.
     const trailMat = new THREE.PointsMaterial({
         color: 0x4488ff,
-        size: 6.0, sizeAttenuation: false, // Make it thick, enveloping the electron path
+        size: eRadius * 1.5, // Make it thick, enveloping the electron path
         transparent: true,
-        opacity: 0.3, // Higher opacity to stand out as probability clouds
+        opacity: 0.05, // Very low opacity per point so they build up slowly
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
@@ -775,11 +735,6 @@ function addOrbitingElectron(centerPoint, orbitRadius, orbitSpeed, orbitPlaneRot
 
 // Helper to construct densely packed atomic nuclei (FCC Lattice approximation)
 function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
-    // If the camera is incredibly far away, we apply a visual logarithmic scale to the nucleus so it's not entirely lost,
-    // though the physical coordinates remain tightly packed.
-    // Wait, let's just use SCALE.PROTON_RADIUS but visually scale the Group by a factor if we are in a massive scene.
-    // Actually, I'll just change the baseScale calls in switchPhenomenon:
-
     const nucleusGroup = new THREE.Group();
     const totalNucleons = numProtons + numNeutrons;
 
@@ -844,18 +799,6 @@ function packNucleus(numProtons, numNeutrons, baseScale=0.5) {
         nucleusGroup.add(nucleon);
     }
 
-
-    // Add a glowing visual marker so the nucleus can be found at immense distances (like 120,000 fm)
-    // The marker scales slightly with the nucleus size but guarantees a minimum visible footprint
-    const markerGeom = new THREE.SphereGeometry(SCALE.PROTON_RADIUS * 10 * Math.pow(totalNucleons, 1/3), 16, 16);
-    const markerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false });
-    const marker = new THREE.Mesh(markerGeom, markerMat);
-    nucleusGroup.add(marker);
-
-    // If the camera is extremely far, we might still not see the marker, so let's make it conditionally huge
-    // depending on the physical scale requested in switchPhenomenon (handled globally by camera distance or just dynamically scaling)
-    marker.userData = { isNucleusMarker: true };
-
     scene.add(nucleusGroup);
     currentMeshes.push(nucleusGroup);
     return nucleusGroup;
@@ -903,91 +846,10 @@ function clearScene() {
 
 
 // --- UI & INTERACTIVITY (ENGINE CONTROLS) ---
-
-// --- ONBOARDING & TOOLTIPS ---
-const landingScreen = document.getElementById('landing-screen');
-const btnEnterSim = document.getElementById('btn-enter-sim');
-const topNavBar = document.getElementById('top-nav-bar');
-const tooltipLayer = document.getElementById('tooltip-layer');
-const tooltipBox = document.getElementById('tooltip-box');
-const tooltipTitle = document.getElementById('tooltip-title');
-const tooltipDesc = document.getElementById('tooltip-desc');
-const tooltipStep = document.getElementById('tooltip-step');
-const btnTooltipNext = document.getElementById('btn-tooltip-next');
-
-let currentTooltip = 0;
-const tooltips = [
-    { title: "The 4π Möbius Electron", desc: "This continuous sweeping loop mathematically confines a 1D photon track into a stable 3D orbit.", pos: { top: '30%', left: '30%' } },
-    { title: "Mathematical Coloring", desc: "Notice the strictly orthogonal colors. The faces represent continuous Electric (Green/Red) and Magnetic (Purple/Yellow) gradients.", pos: { top: '30%', left: '50%' } },
-    { title: "Simulation Controls", desc: "Use the sliders below to alter the time dilation and camera sensitivity. Use the right panel to read the geometric kinematics.", pos: { top: '70%', left: '70%' } }
-];
-
-function showTooltip(index) {
-    if (index >= tooltips.length) {
-        tooltipLayer.classList.add('hidden');
-        tooltipBox.classList.add('opacity-0', 'scale-90');
-        return;
-    }
-
-    const tip = tooltips[index];
-    tooltipTitle.textContent = tip.title;
-    tooltipDesc.textContent = tip.desc;
-    tooltipStep.textContent = `${index + 1}/${tooltips.length}`;
-
-    tooltipBox.style.top = tip.pos.top;
-    tooltipBox.style.left = tip.pos.left;
-
-    tooltipLayer.classList.remove('hidden');
-    // small delay to allow display flex to apply before transition
-    setTimeout(() => {
-        tooltipBox.classList.remove('opacity-0', 'scale-90');
-        tooltipBox.classList.add('opacity-100', 'scale-100');
-    }, 50);
-}
-
-btnTooltipNext.addEventListener('click', () => {
-    tooltipBox.classList.remove('opacity-100', 'scale-100');
-    tooltipBox.classList.add('opacity-0', 'scale-90');
-    setTimeout(() => {
-        currentTooltip++;
-        showTooltip(currentTooltip);
-    }, 300);
-});
-
-btnEnterSim.addEventListener('click', () => {
-    landingScreen.style.opacity = '0';
-    setTimeout(() => {
-        landingScreen.classList.add('hidden');
-        // Start the tour on the first step
-        goToStep(3); // Jump to electron for the tour as per user request context
-        showTooltip(0);
-    }, 700);
-});
-
-// Segmented Nav logic
-function buildSegmentedNav() {
-    topNavBar.innerHTML = '';
-    // Let's pick 4 key steps to highlight in the top bar
-    const highlightIds = ['em_linear', 'leptons', 'hadrons', 'water'];
-    const navItems = tourSteps.filter(s => highlightIds.includes(s.id));
-
-    navItems.forEach(step => {
-        const btn = document.createElement('button');
-        const origIdx = tourSteps.findIndex(s => s.id === step.id);
-
-        btn.className = `px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded transition-all font-mono ${currentStepIndex === origIdx ? 'bg-blue-600/30 text-blue-400 border border-blue-500/50' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1e1e24]'}`;
-
-        // Strip number prefix for cleaner nav
-        btn.textContent = step.title.replace(/^[0-9]+.s*/, '').replace(/Atoms: /, '').replace(/EM Waves: /, '').replace(/Leptons: /, '').replace(/Hadrons: /, '');
-
-        btn.onclick = () => goToStep(origIdx);
-        topNavBar.appendChild(btn);
-    });
-}
-
 const docContainer = document.getElementById('documentation');
 const btnPrev = document.getElementById('btn-prev');
 const btnNext = document.getElementById('btn-next');
+const selectDropdown = document.getElementById('tour-select');
 
 // Sim Controls
 const inputSpeed = document.getElementById('sim-speed');
@@ -1033,6 +895,9 @@ function updateUI() {
     const data = tourSteps[currentStepIndex];
 
     // Update Dropdown
+    selectDropdown.innerHTML = tourSteps.map((step, idx) =>
+        `<option value="${idx}" ${idx === currentStepIndex ? 'selected' : ''}>${step.title}</option>`
+    ).join('');
 
     // Update Buttons
     btnPrev.disabled = currentStepIndex === 0;
@@ -1040,13 +905,8 @@ function updateUI() {
 
     // Update Documentation text
     let html = `
-        <div class="relative">
-            <h2 class="text-sm font-bold text-white mb-2 leading-tight flex items-center justify-between">
-                <span>${data.title}</span>
-                <button id="btn-math-docs" class="text-xs w-6 h-6 flex items-center justify-center rounded bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors border border-blue-500/30 shrink-0" title="View Mathematical Specification">
-                    ?
-                </button>
-            </h2>
+        <div>
+            <h2 class="text-sm font-bold text-white mb-2 leading-tight">${data.title}</h2>
             <p class="text-slate-400 text-[11px] leading-relaxed mb-4">${data.desc}</p>
         </div>
         <div class="bg-[#12121a] border border-[#2a2a35] rounded p-3">
@@ -1055,45 +915,18 @@ function updateUI() {
                 ${data.features.map(f => `<li>${f}</li>`).join('')}
             </ul>
         </div>
+        <div class="mt-1 space-y-2">
+            <h3 class="text-[9px] font-bold text-purple-500 uppercase tracking-widest pl-1 mt-4">Computed Kinematics</h3>
+            ${data.math.map(m => `
+                <div class="bg-[#050508] p-3 rounded border border-[#1e1e24] shadow-inner">
+                    <span class="text-[9px] text-slate-500 block mb-1 font-mono uppercase">${m.label}</span>
+                    <div class="text-slate-300 overflow-x-auto overflow-y-hidden pb-1 math-expr">${m.expr}</div>
+                </div>
+            `).join('')}
+        </div>
     `;
-    html += `
-<div class="mt-8 border-t border-[#2a2a35] pt-6 font-inter">
-    <h2 class="text-[13px] font-bold text-white mb-2 uppercase tracking-widest border-b border-[#2a2a35] pb-2">Abandoning the Point-Particle: The Volumetric Sweep</h2>
-    <p class="text-slate-400 text-[11px] leading-relaxed mb-4">Standard physics visualizes the electron as a zero-dimensional point or a smeared probability cloud. The Geon framework mathematically confines the electron as a one-dimensional photon track wrapped into a stable, continuous orbit. To accurately simulate this in 3D space, this engine abandons standard particle emitters and relies on a strict Parametric Volumetric Sweep governed by four absolute geometric rules.</p>
-
-    <div class="space-y-4">
-        <div>
-            <h3 class="text-[11px] font-bold text-blue-400 mb-1">1. The Closed Loop (The Poynting Guide)</h3>
-            <p class="text-slate-400 text-[11px] leading-relaxed">An electromagnetic wave propagates along its directional energy flux, governed by the Poynting vector ($\vec{S}$). In a Geon, this vector does not travel in a straight line; it catches its own tail. The engine generates a 1D base curve—a perfect circle for the electron, or a (3,2)-Torus knot (Trefoil) for the nucleons —which acts as the absolute center-line of the track.</p>
-        </div>
-        <div>
-            <h3 class="text-[11px] font-bold text-blue-400 mb-1">2. The Bishop Frame (Parallel Transport)</h3>
-            <p class="text-slate-400 text-[11px] leading-relaxed">To extrude a 3D volume along a complex looping path, standard 3D rendering relies on the Frenet-Serret frame. However, Frenet frames calculate the normal vector using the second derivative of the curve, causing the entire 3D mesh to violently pinch and flip $180^\circ$ at mathematical inflection points. To preserve the flawless topological continuity of the vacuum seal, this simulation utilizes a Bishop Frame (Parallel Transport). This ensures the geometric canvas glides smoothly around the entire loop without ever twisting upon itself.</p>
-        </div>
-        <div>
-            <h3 class="text-[11px] font-bold text-blue-400 mb-1">3. The 4-Corner Electromagnetic Boundary</h3>
-            <p class="text-slate-400 text-[11px] leading-relaxed">The physical "thickness" of the light track is not arbitrary. It is defined by the absolute amplitude boundaries of the orthogonal electric ($\vec{E}$) and magnetic ($\vec{B}$) fields. Instead of sweeping a high-poly cylinder, the engine sweeps a rigid 2D square along the Bishop frame. The four corners of this square represent the strict maximum flux boundaries of the $\vec{E}$ and $\vec{B}$ gradients, rendering the wave as a solid, permanent topological displacement in the Casimir fluid.</p>
-        </div>
-        <div>
-            <h3 class="text-[11px] font-bold text-blue-400 mb-1">4. The $4\pi$ Möbius Twist (Circular Polarization)</h3>
-            <p class="text-slate-400 text-[11px] leading-relaxed">As the wave propagates, the orthogonal electric and magnetic fields continuously twist around the propagation axis due to circular polarization. For the Spin-1/2 electron, the engine mathematically forces the square cross-section to rotate by exactly $720^\circ$ ($4\pi$ radians) before the loop closes. When traced along a closed circular orbit, this twist mechanically creates the $4\pi$ Möbius boundary. This absolute topological inversion forces the electric vectors to point inward on one hemisphere and outward on the other, generating the net volumetric displacement that we perceive as "charge."</p>
-        </div>
-    </div>
-</div>
-`;
-
 
     docContainer.innerHTML = html;
-    buildSegmentedNav();
-
-    const mathDocsBtn = document.getElementById('btn-math-docs');
-    if (mathDocsBtn) {
-        mathDocsBtn.addEventListener('click', () => {
-            if (typeof showMathDocsModal === 'function') {
-                showMathDocsModal(data);
-            }
-        });
-    }
 
     // Ensure KaTeX is fully loaded via the CDN before attempting to render equations
     if (document.readyState === 'complete') {
@@ -1112,74 +945,170 @@ window.switchPhenomenon = (type) => {
     if (type === 'custom') atomBuilderUI.classList.remove('hidden');
     else atomBuilderUI.classList.add('hidden');
 
+    if (SIM_STATE.lightMode) {
+        // OVERRIDE: If Light Mode is on, just show raw light waves
+        // Length 40, amplitude 1.5. Center it nicely ahead of the camera.
+        renderLinearPhoton(40, 1.5, [-20, 0, 0]);
+        return;
+    }
+
     if (type === 'vacuum') {
-        renderVacuumFluid();
-    } else if (type === 'em_linear') {
-        // EM Waves: Linear & Polarized
-        renderLinearPhoton(100, 10, [-50, 0, 0], false);
-    } else if (type === 'em_circular') {
-        // EM Waves: Circular & Elliptical
-        renderLinearPhoton(100, 10, [-50, 0, 0], true);
-    } else if (type === 'leptons') {
-        const eRadius = SCALE.ELECTRON_RADIUS;
-        // Electron (Left)
-        renderElectron(eRadius, eRadius * 0.1, [-eRadius * 2.5, 0, 0], false);
-        // Positron (Right, flipped chirality)
-        renderElectron(eRadius, eRadius * 0.1, [eRadius * 2.5, 0, 0], true);
-    } else if (type === 'hadrons') {
+        // Just the starry background
+    } else if (type === 'electron') {
+        renderElectron(4.0, 0.4);
+    } else if (type === 'proton') {
         // Proton (Left)
         renderProton(0.2, 0.05, [-1, 0, 0], false);
         // Neutron (Center)
         renderProton(0.2, 0.05, [0, 0, 0], true);
         // Anti-Proton (Right)
-        const ap = renderProton(0.2, 0.05, [1, 0, 0], false);
-        ap.userData.rotationSpeed.y *= -1; // Flip chirality for antimatter
-
+        renderProton(0.2, 0.05, [1, 0, 0], false, true);
     } else if (type === 'hydrogen') {
-        packNucleus(1, 0, SCALE.PROTON_RADIUS);
-        addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 2.0, [0, 0, 0]);
+        packNucleus(1, 0, 0.1);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 2.0, [0, 0, 0]);
     } else if (type === 'deuterium') {
-        packNucleus(1, 1, SCALE.PROTON_RADIUS);
-        addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS, 1.8, [Math.PI/4, 0, 0]);
+        packNucleus(1, 1, 0.1);
+        addOrbitingElectron(new THREE.Vector3(0,0,0), 15, 1.8, [Math.PI/4, 0, 0]);
     } else if (type === 'water') {
         // Central Oxygen 16 (8p, 8n)
-        packNucleus(8, 8, SCALE.PROTON_RADIUS);
+        packNucleus(8, 8, 1.0);
 
-        // Dynamic unbounded hydrogens
+        // Hydrogen Bonds (1p each at 104.5 degrees)
+        // Distance is ~95.84 pm = 95,840 fm
         const bondLength = SCALE.WATER_BOND;
         const halfAngle = (104.5 / 2) * Math.PI / 180;
 
-        // Spawn 10 dynamic electrons
-        for(let i=0; i<10; i++) {
-            addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS * 1.5, 12.0, [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI], true);
+        const h1 = packNucleus(1, 0, 1.0);
+        h1.position.set(Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
+
+        const h2 = packNucleus(1, 0, 1.0);
+        h2.position.set(-Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
+
+        // Add Cartesian system to show length
+        const mat = new THREE.LineBasicMaterial({color: 0xaaaaaa, transparent: true, opacity: 0.5});
+        const geo1 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), h1.position]);
+        const geo2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), h2.position]);
+        const geo3 = new THREE.BufferGeometry().setFromPoints([h1.position, h2.position]);
+        const line1 = new THREE.Line(geo1, mat);
+        const line2 = new THREE.Line(geo2, mat);
+        const line3 = new THREE.Line(geo3, new THREE.LineBasicMaterial({color: 0x88ff88, transparent: true, opacity: 0.5}));
+        scene.add(line1, line2, line3);
+        currentMeshes.push(line1, line2, line3);
+
+        // 10 Electrons total
+        // Inner O shell (2 electrons)
+        for(let i=0; i<2; i++) {
+            addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS * 0.2, 3.0, [Math.random()*Math.PI, Math.random()*Math.PI, 0], true);
         }
 
-        // Spawn Dynamic Hydrogens as pseudo orbiters but massive
-        const h1 = packNucleus(1, 0, SCALE.PROTON_RADIUS);
-        h1.position.set(Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
-        h1.userData = { isDynamicNucleus: true, charge: 1, velocity: new THREE.Vector3(0, 0, 0), mass: 1836 };
-
-
-        const h2 = packNucleus(1, 0, SCALE.PROTON_RADIUS);
-        h2.position.set(-Math.sin(halfAngle) * bondLength, -Math.cos(halfAngle) * bondLength, 0);
-        h2.userData = { isDynamicNucleus: true, charge: 1, velocity: new THREE.Vector3(0, 0, 0), mass: 1836 };
-
+        // Outer valence shell dynamically stabilizing
+        const sharedCenter = new THREE.Vector3(0, -bondLength * 0.3, 0);
+        for(let i=0; i<8; i++) {
+            addOrbitingElectron(sharedCenter, SCALE.BOHR_RADIUS * 1.5, 1.5, [Math.random()*Math.PI, Math.random()*Math.PI, 0], true);
+        }
 
     } else if (type === 'gold') {
-        // Gold 197 (79 protons, 118 neutrons)
-        packNucleus(79, 118, SCALE.PROTON_RADIUS * 0.5);
+        const core = packNucleus(79, 118, 0.1);
+        // Emphasizing the relativistic v = 0.58c speed of the inner 1s shell.
+        // Speeds decay outward (v = Z*alpha*c / n).
+        const shells = [
+            { n: 2,  r: 12,  s: 5.8 },  // 1s shell (Highly relativistic)
+            { n: 8,  r: 22,  s: 2.9 },  // 2s, 2p
+            { n: 18, r: 35,  s: 1.9 },  // 3s, 3p, 3d
+            { n: 32, r: 50, s: 1.45 }, // 4s, 4p, 4d, 4f
+            { n: 18, r: 68, s: 1.16 }, // 5s, 5p, 5d
+            { n: 1,  r: 85, s: 0.96 }  // 6s (Valence)
+        ];
+        shells.forEach(shell => {
+            for(let i=0; i<shell.n; i++) {
+                addOrbitingElectron(new THREE.Vector3(0,0,0), shell.r + (Math.random()-0.5)*3, shell.s + (Math.random()*0.2), [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2]);
+            }
+        });
 
-        // Generate relativistic electron shells
-        for(let i=0; i<2; i++) {
-            addOrbitingElectron(new THREE.Vector3(0,0,0), SCALE.BOHR_RADIUS * 0.1, 40.0, [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI], true);
-        }
+    } else if (type === 'annihilation') {
+        // Create an electron and a positron orbiting a common center (Positronium)
+        // Set dynamic state initially to false, wait for collision, then unspool.
+        const orbitRadius = SCALE.ELECTRON_RADIUS * 10;
 
-        // Outer shells dynamically populate
-        for(let i=0; i<77; i++) {
-            const shellDist = SCALE.BOHR_RADIUS * (1 + Math.random()*5);
-            const speed = 25.0 / (shellDist / SCALE.BOHR_RADIUS); // Speed drops off with distance
-            addOrbitingElectron(new THREE.Vector3(0,0,0), shellDist, speed, [Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI], true);
-        }
+        // Electron
+        const e1 = renderElectron(SCALE.ELECTRON_RADIUS, SCALE.ELECTRON_TUBE, [-orbitRadius, 0, 0]);
+        e1.userData.velocity = [0, 0, 0];
+        e1.userData.isPositronium = true;
+        e1.userData.angle = Math.PI;
+        e1.userData.orbitRadius = orbitRadius;
+
+        // Positron
+        const e2 = renderElectron(SCALE.ELECTRON_RADIUS, SCALE.ELECTRON_TUBE, [orbitRadius, 0, 0], true);
+        e2.userData.velocity = [0, 0, 0];
+        e2.userData.isPositronium = true;
+        e2.userData.angle = 0;
+        e2.userData.orbitRadius = orbitRadius;
+
+    } else if (type === 'gravity') {
+        // Earth and Moon analog using simple macroscopic spheres
+        const earthGeom = new THREE.SphereGeometry(15, 32, 32);
+        const earthMat = new THREE.MeshPhongMaterial({ color: 0x1e3a8a, wireframe: SIM_STATE.wireframe });
+        const earth = new THREE.Mesh(earthGeom, earthMat);
+        scene.add(earth);
+        currentMeshes.push(earth);
+
+        const moonGeom = new THREE.SphereGeometry(4, 32, 32);
+        const moonMat = new THREE.MeshPhongMaterial({ color: 0x64748b, wireframe: SIM_STATE.wireframe });
+        const moon = new THREE.Mesh(moonGeom, moonMat);
+
+        // Setup tidal locking rotation group
+        const orbitGroup = new THREE.Group();
+        moon.position.set(40, 0, 0);
+
+        // Add a visible marker to the moon to easily see the tidal lock (face always points at earth)
+        const craterGeom = new THREE.SphereGeometry(1, 16, 16);
+        const craterMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+        const crater = new THREE.Mesh(craterGeom, craterMat);
+        crater.position.set(-4, 0, 0); // pointing inward toward Earth origin
+        moon.add(crater);
+
+        orbitGroup.add(moon);
+        orbitGroup.userData = { type: 'tidal_moon', rotationSpeed: { x: 0, y: 0.5, z: 0 } };
+        scene.add(orbitGroup);
+        currentMeshes.push(orbitGroup);
+
+    } else if (type === 'quasar') {
+        // Central Black Hole / Super-Neutron
+        const qScale = SCALE.BOHR_RADIUS * 2; // Making the quasar visually scaled relative to atomic scale
+        const coreGeom = new THREE.SphereGeometry(qScale * 0.05, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.85 }); // Slightly transparent to see crushing core
+        const bh = new THREE.Mesh(coreGeom, coreMat);
+        scene.add(bh);
+        currentMeshes.push(bh);
+
+        // Show a crushed nuclear lattice inside the event horizon
+        const crushedCore = packNucleus(20, 20, SCALE.PROTON_RADIUS * 0.1);
+        crushedCore.scale.set(0.5, 0.5, 0.5); // Pack them very tightly
+        // Note: packNucleus already adds to scene and currentMeshes.
+
+        // Accretion disk
+        const diskGeom = new THREE.RingGeometry(qScale * 0.08, qScale * 0.25, 64);
+        const diskMat = new THREE.MeshBasicMaterial({
+            color: 0xffaa00,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.8,
+            wireframe: SIM_STATE.wireframe
+        });
+        const disk = new THREE.Mesh(diskGeom, diskMat);
+        disk.rotation.x = Math.PI / 2;
+        disk.userData = { rotationSpeed: { x: 0, y: 0, z: -1.5 } }; // Fast rotation
+        scene.add(disk);
+        currentMeshes.push(disk);
+
+        // Bi-polar Gamma Ray Jets (Quasar emission)
+        // Adjust positions so they originate exactly from the poles of the black hole
+        const jet1 = renderLinearPhoton(100, 2, [0, 0, 0]);
+        jet1.rotation.z = Math.PI / 2; // Point UP (Y axis)
+
+        const jet2 = renderLinearPhoton(100, 2, [0, 0, 0]);
+        jet2.rotation.z = -Math.PI / 2; // Point DOWN (-Y axis)
+        jet2.rotation.x = Math.PI; // flip phase to mirror
 
     } else if (type === 'custom') {
         // Read custom builder values
@@ -1187,18 +1116,36 @@ window.switchPhenomenon = (type) => {
         const n = parseInt(inputN.value) || 0;
         const e = parseInt(inputE.value) || 1;
 
-        packNucleus(z, n, SCALE.PROTON_RADIUS);
+        packNucleus(z, n, 0.1);
 
         // Custom Mode: Dynamic electrons with real-time repulsion to form natural shells
         for(let i=0; i<e; i++) {
-            const initialRadius = SCALE.BOHR_RADIUS + (Math.random() - 0.5) * SCALE.BOHR_RADIUS * 0.5;
+            // Spawn electrons at randomized somewhat close distances, they will push each other away
+            const initialRadius = 15 + Math.random() * 10;
             const initialSpeed = 10.0;
             addOrbitingElectron(new THREE.Vector3(0,0,0), initialRadius, initialSpeed, [Math.random()*Math.PI*2, Math.random()*Math.PI*2, Math.random()*Math.PI*2], true);
         }
 
-        currentOrbiters.forEach(orbiter => {
-            orbiter.coreCharge = z;
-        });
+        // Set an attractive charge in the core equal to Z
+        scene.userData.coreCharge = z;
+    } else if (type === 'scattering') {
+        // Target Electron (Stationary but spinning its internal field)
+        const eRadius = SCALE.ELECTRON_RADIUS;
+        const eTube = SCALE.ELECTRON_TUBE;
+        const targetElectron = renderElectron(eRadius, eTube, [0, 0, 0]);
+
+        // Incoming Linear Photon (Gamma ray)
+        const photonStart = [-eRadius * 5, eRadius * 0.5, 0];
+        const photon = renderLinearPhoton(eRadius, eRadius * 0.2, photonStart);
+
+        // Setup scattering kinematics
+        photon.userData.isScatteringPhoton = true;
+        photon.userData.velocity = [eRadius * 2, 0, 0]; // Fast moving photon
+        photon.userData.target = targetElectron;
+        photon.userData.scattered = false;
+
+        targetElectron.userData.velocity = [0, 0, 0];
+        targetElectron.userData.isScatteredTarget = true;
     }
 
     // Set wireframe state on freshly created materials
@@ -1218,8 +1165,13 @@ function goToStep(index) {
     window.switchPhenomenon(step.id);
 
     // Set camera position instantly for the new step to allow free observation
-    if(step.cameraPos) {
+    if(step.cameraPos && !SIM_STATE.lightMode) {
         camera.position.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
+        controls.target.set(0,0,0);
+        controls.update();
+    } else if (SIM_STATE.lightMode) {
+        // Light mode camera setting
+        camera.position.set(0, 0, 45);
         controls.target.set(0,0,0);
         controls.update();
     }
@@ -1228,6 +1180,7 @@ function goToStep(index) {
 // Listeners
 btnPrev.addEventListener('click', () => goToStep(currentStepIndex - 1));
 btnNext.addEventListener('click', () => goToStep(currentStepIndex + 1));
+selectDropdown.addEventListener('change', (e) => goToStep(parseInt(e.target.value)));
 
 btnPlayPause.addEventListener('click', () => {
     SIM_STATE.paused = !SIM_STATE.paused;
@@ -1286,8 +1239,17 @@ chkLightMode.addEventListener('change', (e) => {
     SIM_STATE.lightMode = e.target.checked;
     if (SIM_STATE.lightMode) {
         lightEditorHud.classList.remove('hidden');
+        camera.position.set(0, 0, 45);
+        controls.target.set(0,0,0);
+        controls.update();
     } else {
         lightEditorHud.classList.add('hidden');
+        const step = tourSteps[currentStepIndex];
+        if(step.cameraPos) {
+            camera.position.set(step.cameraPos.x, step.cameraPos.y, step.cameraPos.z);
+            controls.target.set(0,0,0);
+            controls.update();
+        }
     }
     // Refresh current step to apply visual override
     window.switchPhenomenon(tourSteps[currentStepIndex].id);
@@ -1359,65 +1321,15 @@ function animate() {
     const rawDt = clock.getDelta();
     if(SIM_STATE.paused) {
         controls.update();
-        renderer.render(scene, camera);
+        composer.render();
         return;
     }
 
     const dt = rawDt * SIM_STATE.speed;
     time += dt;
 
-
-    // Process dynamic nuclei (Hydrogen protons in Water)
-    // Process dynamic nuclei (Hydrogen protons in Water)
-    const dynamicNuclei = currentMeshes.filter(m => m.userData.isDynamicNucleus);
-    if (dynamicNuclei.length > 0) {
-        // Simple N-body integration for nuclei
-        const repulsionConst = SCALE.WATER_BOND * 0.5; // Tuning factor for visual stability
-
-        dynamicNuclei.forEach(nuc => {
-            let force = new THREE.Vector3(0, 0, 0);
-
-            // Attracted to center (Oxygen)
-            const origin = new THREE.Vector3(0, 0, 0);
-            const distToCenter = nuc.position.distanceTo(origin);
-            const dirToCenter = new THREE.Vector3().subVectors(origin, nuc.position).normalize();
-
-            // EM Spring-like attraction to simulate bonding energy well
-            const bondDiff = distToCenter - SCALE.WATER_BOND;
-            force.add(dirToCenter.multiplyScalar(bondDiff * 0.05));
-
-            // Repel from other nuclei
-            dynamicNuclei.forEach(otherNuc => {
-                if (nuc !== otherNuc) {
-                    const dist = nuc.position.distanceTo(otherNuc.position);
-                    const dir = new THREE.Vector3().subVectors(nuc.position, otherNuc.position).normalize();
-                    const repulsion = (repulsionConst * repulsionConst) / (dist * dist + 0.1);
-                    force.add(dir.multiplyScalar(repulsion));
-                }
-            });
-
-            // Interaction with electrons (attraction)
-            currentOrbiters.forEach(orb => {
-                const dist = nuc.position.distanceTo(orb.mesh.position);
-                const dir = new THREE.Vector3().subVectors(orb.mesh.position, nuc.position).normalize();
-                const attraction = (repulsionConst * repulsionConst) / (dist * dist + 0.1) * 0.2; // Weak attraction
-                force.add(dir.multiplyScalar(attraction));
-            });
-
-            // Apply forces
-            nuc.userData.velocity.add(force.multiplyScalar(dt / nuc.userData.mass));
-
-            // Damping (simulating radiation resistance / binding limits)
-            nuc.userData.velocity.multiplyScalar(0.95);
-
-            // Update position
-            nuc.position.addScaledVector(nuc.userData.velocity, dt * 5000); // Scaled for visible speed
-        });
-    }
-
     currentMeshes.forEach(mesh => {
-
-        // Rotations        // Rotations
+        // Rotations
         if(mesh.userData.rotationSpeed) {
             mesh.rotation.x += mesh.userData.rotationSpeed.x * dt;
             mesh.rotation.y += mesh.userData.rotationSpeed.y * dt;
@@ -1514,16 +1426,16 @@ function animate() {
 
                 // Use the custom discrete vector bricks geometry
                 const linearCurve = new LinearJetCurve();
-                const g1 = createContinuousSweepGeometry(linearCurve, 100, hTube, false, 0.0, Math.PI * 4.0);
-                const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
+                const g1 = createContinuousSweepGeometry(linearCurve, 128, hTube, false, 0.0, 'linear_photon');
+                const m1 = createGeonMaterial(2.0, 'linear_photon');
                 const mesh1 = new THREE.Mesh(g1, m1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
                 mesh1.position.set(0, 0, 0);
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
-                const g2 = createContinuousSweepGeometry(linearCurve, 100, hTube, false, 0.0, Math.PI * 4.0);
-                const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
+                const g2 = createContinuousSweepGeometry(linearCurve, 128, hTube, false, 0.0, 'linear_photon');
+                const m2 = createGeonMaterial(-2.0, 'linear_photon');
                 const mesh2 = new THREE.Mesh(g2, m2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
                 mesh2.position.set(0, 0, 0);
@@ -1552,11 +1464,11 @@ function animate() {
         }
 
         // linear_photon no longer needs CPU updates.
-        // Wavelength, Expansion, and Propagation are handled statically by createContinuousSweepGeometry
+        // Wavelength, Expansion, and Propagation are handled statically by createVectorBricksGeometry
         // and animated by uTime in the fragment shader.
 
-        if(mesh.material && mesh.material.uniforms) {
-            mesh.material.uniforms.uTime.value = time;
+        if(mesh.material && mesh.material.userData && mesh.material.userData.shader) {
+            mesh.material.userData.shader.uniforms.uTime.value = time;
         }
 
         // Vectors
@@ -1569,8 +1481,8 @@ function animate() {
         } else {
            // Also do child meshes in group for materials
            mesh.traverse((child) => {
-               if(child.isMesh && child.material && child.material.uniforms) {
-                   child.material.uniforms.uTime.value = time;
+               if(child.isMesh && child.material && child.material.userData && child.material.userData.shader) {
+                   child.material.userData.shader.uniforms.uTime.value = time;
                }
            });
         }
@@ -1665,8 +1577,8 @@ function animate() {
             orbiter.mesh.lookAt(nextPos);
         }
 
-        if(orbiter.mesh.material && orbiter.mesh.material.uniforms) {
-            orbiter.mesh.material.uniforms.uTime.value = time;
+        if(orbiter.mesh.material && orbiter.mesh.material.userData && orbiter.mesh.material.userData.shader) {
+            orbiter.mesh.material.userData.shader.uniforms.uTime.value = time;
         }
         updateFieldVectors(orbiter.mesh, time);
 
@@ -1688,7 +1600,7 @@ function animate() {
     });
 
     controls.update();
-    renderer.render(scene, camera);
+    composer.render();
 }
 animate();
 
@@ -1697,78 +1609,5 @@ window.addEventListener('resize', () => {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
+    composer.setSize(container.clientWidth, container.clientHeight);
 });
-
-// --- MATH DOCS MODAL ---
-function showMathDocsModal(data) {
-    let modal = document.getElementById('math-docs-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'math-docs-modal';
-        modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-[#000000cc] backdrop-blur-sm p-4 opacity-0 pointer-events-none transition-opacity duration-300';
-        modal.innerHTML = `
-            <div class="bg-[#0c1018] border border-blue-900/50 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col font-inter">
-                <div class="flex items-center justify-between p-4 border-b border-[#2a2a35]">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-3">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        Mathematical Specification
-                    </h2>
-                    <button id="btn-close-math" class="text-slate-400 hover:text-white transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-                <div class="p-6 overflow-y-auto custom-scrollbar flex-grow" id="math-modal-content">
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-
-        document.getElementById('btn-close-math').addEventListener('click', () => {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-        });
-        modal.addEventListener('click', (e) => {
-            if(e.target === modal) modal.classList.add('opacity-0', 'pointer-events-none');
-        });
-    }
-
-    const content = document.getElementById('math-modal-content');
-
-    // Build content dynamically based on the current step's math properties
-    let contentHtml = `
-        <h3 class="text-blue-400 font-bold mb-4 border-b border-blue-900/30 pb-2">${data.title}</h3>
-        <p class="text-slate-300 text-sm mb-6 leading-relaxed">${data.desc}</p>
-    `;
-
-    if (data.math && data.math.length > 0) {
-        contentHtml += `<div class="space-y-6">`;
-        data.math.forEach(m => {
-            contentHtml += `
-                <div class="bg-[#12121a] p-4 rounded border border-[#2a2a35] shadow-inner">
-                    <h4 class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">${m.label}</h4>
-                    <div class="text-slate-200 overflow-x-auto overflow-y-hidden pb-2 math-expr text-lg flex justify-center w-full">${m.expr}</div>
-                </div>
-            `;
-        });
-        contentHtml += `</div>`;
-    } else {
-        contentHtml += `<p class="text-slate-500 italic text-sm text-center">No specific kinematic formulas define this structural step.</p>`;
-    }
-
-    content.innerHTML = contentHtml;
-
-    // Render math
-    if (window.katex) {
-        content.querySelectorAll('.math-expr').forEach(el => {
-            katex.render(el.textContent, el, {
-                throwOnError: false,
-                displayMode: true
-            });
-        });
-    }
-
-    // Show modal
-    modal.classList.remove('opacity-0', 'pointer-events-none');
-}
-
-// Add event listener to the dynamically created btn-math-docs in updateUI
-// The problem is updateUI replaces innerHTML. We need to attach the listener AFTER updateUI finishes.

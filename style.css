@@ -22,7 +22,3 @@
     overflow-y: hidden;
     padding-bottom: 0.25rem;
 }
-
-#canvas-container canvas {
-    background: radial-gradient(circle at center, #111820 0%, #0A0F14 100%);
-}
