@@ -36,7 +36,7 @@ const tourSteps = [
             { label: 'Casimir Confinement Pressure', expr: 'F_{vac} = \\frac{\\hbar c}{2r^2} \\equiv \\frac{m_e c^2}{r}' },
         ],
         features: ['4π (720°) twisted Möbius double-loop', 'Macroscopically massive boundary (193 fm radius)', 'Explains Dirac g=2 anomaly geometrically'],
-        cameraPos: { x: 0, y: 0, z: 1000 },
+        cameraPos: { x: 0, y: 0, z: 10 },
     },
     {
         id: 'proton',
@@ -238,10 +238,14 @@ class LinearPhotonCurve extends THREE.Curve {
         const normals = [];
         const binormals = [];
 
+        // Circular polarization twist frequency based on wavelength
+        // Using a similar formula to waveFreq but to physically twist the geometry normal/binormal axes
+        const twistPerSegment = (1.0 / SIM_STATE.lightWavelength) * (Math.PI * 2.0) / segments;
+
         for (let i = 0; i <= segments; i++) {
             tangents.push(new THREE.Vector3(1, 0, 0));
-            // Rotate the normal by the user's polarization angle
-            const polRad = SIM_STATE.lightPolarization * Math.PI / 180;
+            // Rotate the normal by the user's base polarization angle + structural circular twist
+            const polRad = (SIM_STATE.lightPolarization * Math.PI / 180) + (i * twistPerSegment);
             const n = new THREE.Vector3(0, Math.cos(polRad), Math.sin(polRad));
             normals.push(n);
             const b = new THREE.Vector3().crossVectors(tangents[i], n).normalize();
@@ -360,11 +364,11 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
 
         // Create a thin brick (slice) centered at pt, thickness based on segment length
         const segmentLength = pt.distanceTo(nextPt);
-        const halfThick = T.clone().multiplyScalar(segmentLength * 0.4); // 80% coverage, 20% gap
+        const halfThick = T.clone().multiplyScalar(segmentLength * 0.5); // 100% coverage, touching segments
 
-        // Increase visual size of B and E vectors slightly for better visibility
-        const E_vis = E.clone().multiplyScalar(1.5);
-        const B_vis = B.clone().multiplyScalar(1.5);
+        // Use exact E and B vectors to make perfectly square blocks
+        const E_vis = E.clone();
+        const B_vis = B.clone();
 
         const c0 = pt.clone().add(E_vis).add(B_vis).sub(halfThick); // +E, +B, Back
         const c1 = pt.clone().sub(E_vis).add(B_vis).sub(halfThick); // -E, +B, Back
@@ -424,21 +428,36 @@ function createVectorBricksGeometry(curve, segments, radius, closed=true, expans
     return geom;
 }
 
-function createGeonMaterial(twistFactor, isNeutral=false) {
-    const ePlus = isNeutral ? '#557755' : '#00ff00';
-    const eMinus = isNeutral ? '#775555' : '#ff0000';
-    const bPlus = isNeutral ? '#555577' : '#800080';
-    const bMinus = isNeutral ? '#777755' : '#ffff00';
+function createGeonMaterial(twistFactor, particleType='electron') {
+    let c1, c2, c3, c4;
+
+    if (particleType === 'proton') {
+        c1 = '#ff0000'; // Red
+        c2 = '#ff8c00'; // Orange
+        c3 = '#ffd700'; // Yellow
+        c4 = '#6b705c'; // Grey
+    } else if (particleType === 'neutron') {
+        c1 = '#2a9d8f'; // Green
+        c2 = '#00b4d8'; // Cyan
+        c3 = '#0077b6'; // Blue
+        c4 = '#4a4e69'; // Dark Purple/Grey
+    } else {
+        // electron, positron, photon (default)
+        c1 = '#8a2be2'; // BlueViolet (Dark Purple)
+        c2 = '#b026ff'; // Light Purple
+        c3 = '#0055ff'; // Blue
+        c4 = '#00aaff'; // Light Blue
+    }
 
     return new THREE.ShaderMaterial({
         vertexShader: particleVertexShader,
         fragmentShader: particleFragmentShader,
         uniforms: {
             uTime: { value: 0 },
-            colorEPlus: { value: new THREE.Color(ePlus) },
-            colorEMinus: { value: new THREE.Color(eMinus) },
-            colorBPlus: { value: new THREE.Color(bPlus) },
-            colorBMinus: { value: new THREE.Color(bMinus) },
+            colorEPlus: { value: new THREE.Color(c1) },
+            colorBPlus: { value: new THREE.Color(c2) },
+            colorEMinus: { value: new THREE.Color(c3) },
+            colorBMinus: { value: new THREE.Color(c4) },
             uTwistFactor: { value: twistFactor },
         },
         side: THREE.DoubleSide,
@@ -462,6 +481,13 @@ function createWaveMaterial() {
         transparent: true,
         opacity: 0.8
     });
+}
+
+// Helper to add sharp black outlines to the discrete bricks
+function addDiscreteOutlines(mesh, geometry) {
+    const edges = new THREE.EdgesGeometry(geometry, 15);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: true, opacity: 0.8 }));
+    mesh.add(line);
 }
 
 // Vector helper to draw E, B, and S vectors along the curve
@@ -491,8 +517,9 @@ function renderElectron(radius=2, tubeRadius=0.3, pos=[0,0,0], isPositron=false)
     const curve = new MobiusCurve(radius, tubeRadius);
     // Use the custom discrete vector bricks geometry
     const geometry = createVectorBricksGeometry(curve, 100, tubeRadius, true);
-    const material = createGeonMaterial(isPositron ? -2.0 : 2.0);
+    const material = createGeonMaterial(isPositron ? -2.0 : 2.0, isPositron ? 'positron' : 'electron');
     const mesh = new THREE.Mesh(geometry, material);
+    addDiscreteOutlines(mesh, geometry);
     mesh.position.set(...pos);
     mesh.userData = {
         type: isPositron ? 'positron' : 'electron',
@@ -521,8 +548,9 @@ function renderLinearPhoton(length=10, amplitude=1, pos=[0,0,0]) {
     // of wavelengths that fit into the geometry.
     // 100 length / (SIM_STATE.lightWavelength * 10) gives a nice number of propagating waves
     const waveFreq = 100.0 / (SIM_STATE.lightWavelength * 10.0);
-    const material = createGeonMaterial(waveFreq); // Re-purpose twist for spatial wave freq
+    const material = createGeonMaterial(waveFreq, 'photon'); // Re-purpose twist for spatial wave freq
     const mesh = new THREE.Mesh(geometry, material);
+    addDiscreteOutlines(mesh, geometry);
     mesh.position.set(...pos);
     mesh.userData = { type: 'linear_photon', length, amplitude, origin: pos, curveType: 'linear' };
 
@@ -536,8 +564,9 @@ function renderProton(radius=2, tubeRadius=0.4, pos=[0,0,0], isNeutral=false) {
     const curve = new TrefoilCurve(radius, tubeRadius);
     // Use the custom discrete vector bricks geometry
     const geometry = createVectorBricksGeometry(curve, 120, tubeRadius, true);
-    const material = createGeonMaterial(3.0, isNeutral);
+    const material = createGeonMaterial(3.0, isNeutral ? 'neutron' : 'proton');
     const mesh = new THREE.Mesh(geometry, material);
+    addDiscreteOutlines(mesh, geometry);
     mesh.position.set(...pos);
     mesh.userData = { type: isNeutral ? 'neutron' : 'proton', rotationSpeed: { x: 0.05, y: 0.2, z: 0.05 } };
 
@@ -1287,16 +1316,18 @@ function animate() {
                 // Use the custom discrete vector bricks geometry
                 const linearCurve = new LinearJetCurve();
                 const g1 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
-                const m1 = createGeonMaterial(2.0); // e+ (Phase Shifted EM)
+                const m1 = createGeonMaterial(2.0, 'positron'); // e+ (Phase Shifted EM)
                 const mesh1 = new THREE.Mesh(g1, m1);
+                addDiscreteOutlines(mesh1, g1);
                 mesh1.userData = { isPhotonJet: true, dir: 1, rotationSpeed: { x: 0, y: 0, z: 5.0 } };
                 mesh1.position.set(0, 0, 0);
                 scene.add(mesh1);
                 currentMeshes.push(mesh1);
 
                 const g2 = createVectorBricksGeometry(linearCurve, 100, hTube, false);
-                const m2 = createGeonMaterial(-2.0); // e- (Phase Shifted EM)
+                const m2 = createGeonMaterial(-2.0, 'electron'); // e- (Phase Shifted EM)
                 const mesh2 = new THREE.Mesh(g2, m2);
+                addDiscreteOutlines(mesh2, g2);
                 mesh2.userData = { isPhotonJet: true, dir: -1, rotationSpeed: { x: 0, y: 0, z: -5.0 } };
                 mesh2.position.set(0, 0, 0);
                 scene.add(mesh2);
