@@ -323,11 +323,14 @@ function renderElectron() {
     const mesh = new THREE.Mesh(geometry, material);
     addDiscreteOutlines(mesh, geometry);
 
+    mesh.userData.velocity = new THREE.Vector3(5, 0, 0); // Travels across screen
+    mesh.position.set(-15, 0, 0); // Start off-screen
+
     addFieldVectors(mesh, 'mobius', { radius, tubeRadius });
     scene.add(mesh);
     currentMeshes.push(mesh);
 
-    camera.position.set(0, 0, 10);
+    camera.position.set(0, 0, 15);
     controls.target.set(0, 0, 0);
     controls.update();
 }
@@ -343,11 +346,14 @@ function renderProton() {
     const mesh = new THREE.Mesh(geometry, material);
     addDiscreteOutlines(mesh, geometry);
 
+    mesh.userData.velocity = new THREE.Vector3(0.5, 0, 0); // Travels across screen (slower due to scale)
+    mesh.position.set(-0.8, 0, 0); // Start off-screen relative to camera
+
     addFieldVectors(mesh, 'trefoil', { radius, tubeRadius });
     scene.add(mesh);
     currentMeshes.push(mesh);
 
-    camera.position.set(0, 0, 0.5); // Zoomed in massively for sub-femto density
+    camera.position.set(0, 0, 0.8); // Zoomed in massively for sub-femto density
     controls.target.set(0, 0, 0);
     controls.update();
 }
@@ -362,11 +368,14 @@ function renderPhoton() {
     const mesh = new THREE.Mesh(geometry, material);
     addDiscreteOutlines(mesh, geometry);
 
+    mesh.userData.velocity = new THREE.Vector3(15, 0, 0); // Fast light-speed propagation
+    mesh.position.set(-20, 0, 0); // Start off-screen
+
     addFieldVectors(mesh, 'linear', { length, amplitude });
     scene.add(mesh);
     currentMeshes.push(mesh);
 
-    camera.position.set(0, 0, 8);
+    camera.position.set(0, 0, 15);
     controls.target.set(0, 0, 0);
     controls.update();
 }
@@ -444,6 +453,18 @@ function animate() {
                 child.material.userData.shader.uniforms.uTime.value = time;
             }
         });
+
+        // Physical translation
+        if (mesh.userData.velocity) {
+            mesh.position.addScaledVector(mesh.userData.velocity, dt);
+
+            // Dynamic bounds reset for continuous looping effect based on camera scale
+            if (camera.position.z < 2.0) { // Sub-femtometer view (Proton)
+                if (mesh.position.x > 1.2) mesh.position.x = -1.2;
+            } else { // Macroscopic view (Electron, Photon)
+                if (mesh.position.x > 25) mesh.position.x = -25;
+            }
+        }
 
         updateFieldVectors(mesh, time);
     });
