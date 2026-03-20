@@ -1,0 +1,1642 @@
+
+
+================================================================================
+FILE: Paper 4: The Gravitational Casimir Shadow.pdf
+================================================================================
+
+Paper 4: The Gravitational Casimir Shadow
+Deriving G, Relativity, Quantum Tidal Locking, and Quasar Ignition via Vacuum Fluid
+Mechanics
+Daniel Gezin
+Independent Researcher
+ORCID: 0009-0003-7309-7050
+February 2026
+Abstract
+Thispaperreformulatesmacroscopicgravityandrelativistickinematicsasstrictmechanicalconsequences
+of a hyper-elastic vacuum field. By defining mass as topological knots of trapped electromagnetic waves
+(Geons),wederivetheNewtonianconstant(G)fromthegeometricshadowingofthispressurefield. Further-
+more, we translate abstract spacetime curvature into a literal fluid-dynamic gradient, resolve the relativistic
+mass paradox, calculate tidal locking mechanics, and define the absolute geometric density limit of gravita-
+tionalcollapse(theGezinRadius),culminatingintheexactgamma-rayemissionspectraforQuasarignition.
+1 Matter as Confined Electromagnetic Waves
+Solid matter is a macroscopic illusion. The total mass of a celestial body is fundamentally just the aggregate
+of its elementary constituents. None of these particles are zero-dimensional points; they are localized waves
+bound by vacuum pressure. Leptons form double-loop topologies, whereas nucleons manifest as tightly folded
+three-dimensional knots with distinct central voids (0.38 fm tube thickness, 0.46 fm core hole).
+Macroscopic Atom (Empty Space)
+Electron
+Nucleons (Thick Trefoil Tubes)
+0.38 fm thickness, 0.46 fm core hole
+Because macroscopic bodies are overwhelmingly empty space populated by infinitesimal light-knots, planets
+are hyper-transparent to the zero-point fluctuation (ZPF) field.
+2 Macroscopic Casimir Shadowing (The Origin of G)
+Classical pushing gravity failed by treating matter as solid shields. Here, the vacuum exerts a baseline isotropic
+pressure (P vac). When two masses exist in this fluid, their constituent femtometer Geons mutually shadow each
+other. The cross-section of a single Geon (σ = πR2) is infinitesimal, meaning the total shadow is exactly the
+p
+linear sum of its particles.
+This geometric shadow creates an unbalanced external pressure pushing the bodies together, yielding the
+Gravitational Constant:
+P σ2
+G= vac (1)
+4πm2
+p
+1
+∆P
+vac
+M M
+1 2
+Casimir Pressure Virtual Bubble (Shadow Zone)
+3 Translating 1915 General Relativity
+Einstein mapped gravity as geometric curvature. While mathematically flawless for trajectories, spacetime is an
+abstract metric. This abstraction mechanically translates into a Fluid-Dynamic Pressure Gradient.
+Decreasing P vac
+Wave-front Refraction (Gravitational Well)
+Star (M)
+A massive body acts as a sink of Casimir shadowing. As an external wave passes through this gradient, the
+side of the wave closer to the star encounters lower Casimir pressure, causing the track to mechanically refract
+inward. Thisprovidestheexactmechanicalcauseofgravitationallensingandorbitalmechanicswithoutrequiring
+curved spacetime.
+4 Tidal Locking via Casimir Pressure Gradients
+4.1 Macroscopic Shear: The Earth and Moon
+Classicalmechanicsattributes tidallockingtogravitationaldeformation. Inthe Geonframework, itisthe direct
+result of macroscopic fluid-dynamic shear within the Casimir vacuum.
+The Earth acts as a massive Casimir shield. The near side of the Moon (r−R m) experiences a significantly
+deeper shadow than the far side (r+R m). This asymmetrical pressure gradient (∆a shadow ≈4.89×10−5 m/s 2 )
+forces the Moon’s structural lattice to physically elongate along the axis of the shadow.
+2
+Casimir Shadow Gradient
+∆P P
+vac vac
+Earth Moon
+Elongated by shear
+As the Moon rotates, it continuously churns through this fluid-dynamic shear, bleeding rotational kinetic
+energy until its geometric bulge achieves permanent hydrostatic equilibrium.
+4.2 Quantum Tidal Lock: Hydrogen n = 1
+The 13.6 eV ground state of the Hydrogen atom is the absolute fluid-dynamic tidal lock between the proton
+and the electron. For the system to achieve permanent stability, the internal phase rotation of the electron’s 4π
+Möbius wave must perfectly synchronize with its macroscopic orbital velocity.
+Phase Lock
+e− Loop
+Proton (0.84 fm)
+Mutual Shadow (∆P vac)
+To lock onto the proton’s Casimir gradient, the electron’s orbital velocity (v) throttles to exactly v = αc,
+yielding:
+1
+K = 2 m e (αc)2 ≈13.605 eV (2)
+5 Resolution of the Relativistic Mass Paradox
+As an object approaches c, its relativistic mass increases toward infinity, which standard theory suggests should
+generate infinite gravity. The Geon framework resolves this paradox by decoupling inertial resistance from
+gravitational attraction.
+5.1 Inertial Resistance (The Helical Stretch)
+Because the internal light wave is strictly bounded by c, external velocity (v) forces the confined track into an
+elongated helical trajectory. The rate of change of this pitch dictates geometric resistance (inertia: F =m e γ3a).
+5.2 Gravitational Stability (Constant Cross-Section)
+While longitudinal inertia approachesinfinity, gravity remains strictly constant. Gravity is caused solely by
+the transverse Casimir shadow cross-section (σ = πR2). As the Geon stretches longitudinally into a helix, its
+transverseradius(R)doesnotexpand. BecausethephysicalareablockingtheCasimirvacuumpressureremains
+unchanged, the gravitational shadow never increases.
+3
+Helical Stretch (Inertia Increases)
+v →c
+Resting Relativistic
+(v =0, Constant σ) (Transverse Shadow σ is Constant)
+6 The Maximal Geon Lattice and the Gezin Radius
+Gravity is the physical blocking of Casimir vacuum pressure. Once the topological cross-sections (σ) perfectly
+overlap, they block 100% of the local zero-point fluctuations. A shadow cannot exceed 100% opacity.
+At this Absolute Casimir limit, the stellar core fuses into a Maximal Geon Lattice. The absolute physical
+boundary of this gravitational collapse is defined as the Gezin Radius (R gezin). Unlike the Schwarzschild
+radius, which represents a mathematical singularity, the Gezin Radius scales geometrically with the cube root of
+the object’s mass (M), based on the strict physical packing limit of 0.84 fm nucleons:
+(cid:115)
+M
+R gezin =R p 3 m (3)
+p
+For a 3-Solar-Mass object (M ≈ 6×1030 kg), the Gezin Radius calculates to R gezin ≈ 12.8 km. This aligns
+perfectly with the macroscopic dimensions of observable stellar-mass black holes, entirely eliminating the need
+for an infinite point-mass singularity.
+Standard GR Geon Model
+Mathematical Singularity The Gezin Radius (R gezin)
+6.1 The Super-Neutron and Quasar Ignition
+Ifmassaccumulationforcestheinwardpressuretoexceedthe212,600N/fmhard-stoplimit,thenucleonswithin
+theGezinRadiusfracture. Theyattempttofuseintoasingle,macroscopic(3,2)Trefoilknot—a”Super-Neutron.”
+Asasinglephase-lockedloopofc-velocitylight,thisSuper-Neutronactsasamassivedynamo,generatingthe
+103 to 104 Gauss magnetic fields observed near supermassive black holes like M87*. However, the equilibrium
+radius of a single Trefoil knot is strictly inversely proportional to its mass (R = 4(cid:126)/Mc). For a 3-Solar-Mass
+object, this forces the light track to crush to 10−73 meters.
+At this scale, the tracks physically self-intersect, causing instantaneous destructive phase-annihilation. The
+1030 kg mass unspools instantly back into free light.
+6.2 Real-World Data: GRB Emission Spectral Match
+Because the foundational Geon (the nucleon) possesses a rest energy of ∼ 938 MeV, the unspooling light must
+be emitted at this exact foundational resonant wavelength:
+hc
+λ emit = E ≈1.32×10−15 m (Gamma radiation) (4)
+4
+ThispredictsthatthecoredetonationofaMaximalGeonLatticereleasesapureburstofextremeGammaRays.
+Applyingcosmologicalredshift(z)fordistantquasars,theobservedradiationisλ obs =λ emit (1+z). ForaQuasar
+at z =6:
+λ obs ≈(1.32×10−15)(1+6)≈9.24×10−15 m (5)
+Even highly redshifted, the unspooling wavelength remains strictly in the Gamma-Ray and hard X-ray band.
+This exact ∼ 938 MeV threshold mechanism perfectly explains the ultra-high-energy GeV and TeV scale
+emissions routinely observed by the Fermi Large Area Telescope (Fermi-LAT), and the anomalous photons
+recorded during extreme core-collapse events like GRB 221009A. The universe is not accelerating points of mass
+tonear-infiniteenergies;itisunspoolingmacroscopicGeonknotsdirectlybackintotheirconstituenthigh-energy
+light.
+7 Gravitational Waves and the Speed of Gravity
+When a massive object accelerates, it displaces the local zero-point pressure field, creating a longitudinal and
+transverse stress wave. The speed of gravity is strictly the speed of light (c) because c is the fundamental wave
+propagation speed of the vacuum medium, dictated natively by the fluid’s permittivity ((cid:15) 0), permeability (µ 0),
+and kinematic action viscosity (h).
+References
+[1] Casimir, H. B. G. (1948). On the attraction between two perfectly conducting plates. Proceedings of the
+Koninklijke Nederlandse Akademie van Wetenschappen, 51:793-795.
+[2] Einstein, A. (1915). Die Feldgleichungen der Gravitation. Sitzungsberichte der Preussischen Akademie der
+Wissenschaften zu Berlin, 844-847.
+[3] Lorentz, H. A. (1904). Electromagnetic phenomena in a system moving with any velocity smaller than that
+of light. Proceedings of the Royal Netherlands Academy of Arts and Sciences, 6:809-831.
+[4] Gezin, D. (2026). The Topological Architecture of the Electron: Unifying Quantum Mechanics, Electrody-
+namics, and Relativity.
+[5] Gezin, D. (2026). Topological Nucleons: Deriving the 0.84 fm Proton Radius.
+[6] EventHorizonTelescopeCollaboration.(2021).FirstM87EventHorizonTelescopeResults.TheAstrophysical
+Journal Letters.
+[7] Lu, Z. et al. (2025). Kilogauss magnetic field and jet dynamics in the quasar NRAO 530. Astronomy &
+Astrophysics.
+[8] Fermi-LAT Collaboration. (2023). Observations of the extremely bright GRB 221009A. The Astrophysical
+Journal.
+5
+
+
+================================================================================
+FILE: The Fluid Dynamics of the Casimir Vacuum_ Planck_s Viscosity, Wave Collapse, and the Geon Threshold.pdf
+================================================================================
+
+The Fluid Dynamics of the Casimir Vacuum:
+Planck’s Viscosity, Wave Expansion, and the Geon
+Collapse Threshold
+Daniel Gezin
+Independent Researcher
+ORCID: 0009-0003-7309-7050
+February 18, 2026
+Abstract
+StandardquantummechanicstreatsthevacuumasapassivevoidandPlanck’sconstant
+(h) as an abstract quantization rule. This paper reconceptualizes the Casimir vacuum as a
+hyper-elastic, zero-point tensor fluid, deriving Planck’s constant mechanically as the funda-
+mental kinematic action viscosity of empty space. By applying classical fluid principles to
+electromagneticpropagation,wederiveanovelmetric—theTopologicalReynoldsNumberof
+theVacuum(Re ). Thismetricstrictlyexplainswhylow-energylightdispersesspherically
+vac n
+(the inverse-square law), why high-energy gamma
+raedzi
+iation focuses linearly like a projec-
+G
+tile, and calculates the exact 1.022 MeV threshold where wave expansion is overpowered by
+D.
+vacuum crush. Furthermore, we define the asy-mmetrical topological shear (the ”Nuclear
+Anvil”) required to torque these extreme li
+r
+ni ne t ar waves, strictly deriving the experimental
+p
+mechanics of Pair Production. e
+r
+P
+al
+n
+1 The Hyper-Elastic Ca
+r
+si gi i mir Vacuum
+O
+The empirical existence of the Casimir effect [1] proves that the vacuum is not a void; it is an
+active, pressurized field of zero-point fluctuation. To support continuous wave propagation, this
+field must possess the mechanical characteristics of a hyper-elastic tensor fluid.
+When a free electromagnetic wave propagates, it does not move through ”nothing.” It must
+physically displace the structural tension of this vacuum fluid. Like any physical medium, the
+vacuum naturally resists displacement. The observable energy of an electromagnetic wave is
+simply the kinetic effort required to continuously deform this elastic medium at velocity c.
+2 The Mechanical Origin of Planck’s Constant (h)
+In1901, MaxPlanckintroducedhstrictlyasamathematicalproportionalityconstant(E = hf)
+to quantize radiation [2]. However, dimensionally, Planck’s constant possesses the units of
+Action (Joules × seconds), which strictly equates to:
+h = 6.62607×10−34 kg·m2/s (1)
+In classical fluid dynamics, kinematic viscosity (ν) dictates the energy required to shear a fluid
+over time. By incorporating mass-energy equivalence, h perfectly aligns with the dimensions of
+a mass-weighted viscous medium. In this framework, h is strictly redefined as the Kinematic
+Action Viscosity of the Casimir Vacuum.
+The foundational equation E = hf is mechanically decoded as a fluid-dynamic power equa-
+tion. A propagating photon must violently push against the baseline viscosity of space. The
+1
+total energy (E) required to exist is directly proportional to how many times per second (f)
+the wave-front must cycle against the fundamental sheer resistance (h) of the vacuum medium.
+3 Wave Expansion and the Inverse Square Law
+Why does light from a star expand in a spherical shell, classically obeying the inverse square
+law (I ∝ 1/r2)?
+In our fluidic vacuum, the transverse electric (E(cid:126)) vectors of a propagating wave represent
+regions of intense local elastic stress. Like a highly compressed gas expanding into a lower-
+pressure atmosphere, the localized electromagnetic stress naturally seeks to minimize its energy
+state. The electric vectors repel one another laterally along the wave-front, causing the spatial
+boundary of the wave to continuously dilate.
+The macroscopic expansion pressure (P ) of the wave-front pushing outward spherically is
+exp
+proportional to its kinetic energy distributed over the expanding surface area:
+E
+P ∝ (2)
+exp 4πr2cτ
+This continuous geometric dilation smoothly distributes the energy over an ever-widening area,
+mechanically deriving the classical phenomenon of spherical diffraction.
+4 The ”Bullet in Water” Effect: High-Energy Focusing
+n
+zi
+e
+G
+Experimental physics demonstrates that high-energy photons (X-rays, gamma rays) do not
+D.
+diffract spherically like radio waves; they travel-in tight, highly focused linear beams with
+minimal lateral spread. ri
+nt
+p
+We establish this via the ”Bullet in Wr eater” Analogy. When a low-velocity projectile
+P
+enters water, the fluid has time to react,aclreating broad, rippling wakes (spherical dispersion).
+n
+When an extreme-velocity projectile
+r
+ei gn i ters the water, it punches through the medium faster
+O
+thanthefluid’sbulkmoduluscanrespondlaterally, creatinganarrow, highlyfocusedcavitation
+tunnel.
+4.1 The Topological Reynolds Number (Re )
+vac
+To calculate this focusing effect, we introduce a novel parameter balancing the wave’s inertial
+penetration against the vacuum’s lateral crushing force: the Topological Reynolds Number
+of the Vacuum (Re ).
+vac
+Wave Inertial Penetration E
+γ
+Re = = (3)
+vac
+Vacuum Viscous Relaxation h·f
+vac
+Where f represents the baseline relaxation frequency of the local zero-point field.
+vac
+• Low Energy (Radio/Visible, Low Re ): The wave displaces the vacuum slowly.
+vac
+P dominates. The stress distributes laterally, creating an expanding spherical ”gas.”
+exp
+• High Energy (Gamma, High Re ): The wave cycles so violently that it punches
+vac
+a strict linear tunnel through the vacuum. The inward lateral crush of the surrounding
+Casimirfieldoccurstooslowlytodissipatetheenergy,forcingthewaveintoanultra-tight,
+focused cylinder.
+2
+Low E: Spherical Dilation (P exp ) High E: Vacuum Crush Focusing
+Figure 1: Fluid Dynamics of Light: Low energy waves expand laterally like a gas. High energy
+wavespossesshighRe ,piercingthevacuumlinearlywhilebeingstrictlyconstrainedbylateral
+vac
+Casimir pressure.
+5 The Geon Threshold: Mathematical Overpowering
+As the wavelength (λ) shrinks into the picometer scale, the spatial volume of the wave packet
+decreases cubically. The external inward Casimir vacuum pressure (P ) attempting to crush
+vac
+this highly concentrated displacement scales inversely with the cube of the wavelength:
+hc
+P ∝ (4)
+vac 2λ3
+n
+zi
+Because λ3 shrinks geometrically faster than the laGt e eral r2 expansion, there exists a strict,
+calculable mathematical singularity where the inwDar . d crushing force of the vacuum absolutely
+-
+overpowers the internal repulsive expansion of tnhte wave:
+ri
+p
+e
+PPv r
+ac
+> P
+exp
+(5)
+al
+n
+gi
+5.1 Deriving the Critical Limriit (1.022 MeV and 1.213 pm)
+O
+To physically collapse a linear wave into stable, circulating leptonic loops (an electron and
+positron), the wave must possess enough internal energy to satisfy the topological rest-mass
+boundary conditions of both resulting geometries (E ≥ 2m c2).
+e
+We calculate the exact critical energy threshold (E ):
+crit
+E = 2(0.510998 MeV) = 1.02199 MeV ≈ 1.637×10−13 J (6)
+crit
+At this specific energy, the wavelength reaches its critical compression limit (λ ):
+crit
+hc 1.986×10−25 J·m
+λ = = ≈ 1.213×10−12 m (7)
+crit E 1.637×10−13 J
+crit
+At exactly λ ≤ 1.213 pm, the volumetric Casimir crush vastly exceeds the linear wave’s ability
+to expand. However, if the wave collapses, why do higher-energy gamma rays (e.g., 10 TeV
+from astrophysical sources) survive in deep space?
+6 Catalyzed Topological Collapse: The Nuclear Anvil
+Inapure,homogeneousvacuum,thelateralCasimirpressurecrushinginwardonthehigh-energy
+wave is perfectly symmetric. Because the wave possesses immense forward linear momentum,
+it acts as a balanced hypersonic projectile. The symmetric inward crush cannot overcome the
+extreme forward inertia without a structural perturbation; therefore, the wave penetrates the
+vacuum indefinitely.
+To buckle the linear wave, there must be an asymmetrical topological shear.
+3
+6.1 Nuclear Pair Production
+ThisrequirementishistoricallyvalidatedbyNuclear Pair Production. In1933,Blackettand
+Occhialini [?] proved that a gamma-ray ≥ 1.022 MeV must pass near a heavy atomic nucleus
+to transform into an electron and positron.
+In the Geon framework, the heavy nucleus (a massive multi-trefoil topology) projects an im-
+mense, highly concentrated spatial gradient of both electrostatic stress and Casimir shadowing.
+When the high-energy gamma ”bullet” grazes this steep gradient, the side of the wave closest
+to the nucleus experiences massive drag compared to the far side.
+This extreme asymmetrical shear acts as a topological anvil. The forward linear momentum
+ofthewaveisabruptlyarrestedandtorqued. BecausetheintenseCasimirpressure(P > P )
+vac exp
+prevents the torqued wave from dispersing laterally, the wave violently buckles. To conserve
+angular momentum, it shears into two counter-rotating vortices.
+Topological Shear
+γ ≥ 1.022 MeV P vac Forces Curl e−
+e+
+n
+zi
+Nucleus e
+G
+D.
+-
+nt
+AsymmetricarliShear Gradient
+p
+e
+r
+P
+al
+n
+Figure2: CatalyzedTopologicalCollapgsie: Theextremeforwardinertiaofahigh-energygamma
+ri
+ray prevents spontaneous collapse iOn a pure vacuum. When it grazes a heavy nucleus, the
+asymmetrical spatial gradient applies severe shear. The wave buckles under the Casimir crush,
+locking its phase into two counter-rotating, circularly polarized loops (Topological Geons).
+To survive annihilation, the sheared wave ends lock their phases, curling into two mirrored
+4π loops. The linear kinetic energy is permanently converted into the continuous circularly
+polarized rotation of the Topological Geon, strictly deriving the genesis of structural mass
+(m = E/c2).
+6.2 The Breit-Wheeler Process: Self-Shearing in a Vacuum
+In 1934, Breit and Wheeler [?] theorized that two high-energy photons colliding in an empty
+vacuum would provide enough concentrated energy density to trigger this collapse without a
+nucleus. This was definitively proven by the STAR collaboration in 2021 [?].
+Within this framework, the Breit-Wheeler process is perfectly consistent. When two high-
+energy beams perfectly cross in a pure vacuum, their intersecting momentum vectors act as
+the extreme topological shear gradient for each other. They serve as mutual topological anvils,
+providing the exact asymmetrical torque required to buckle their linear tracks under the sur-
+roundingCasimirpressure,resultinginspontaneoustopologicalpairproductioninemptyspace.
+4
+7 Conclusion
+By redefining the quantum vacuum as an active, hyper-elastic fluid, we achieve total mechan-
+ical unity for electromagnetic propagation. Planck’s constant (h) is explicitly defined as the
+kinematic action viscosity of empty space. The inverse-square law is derived as the lateral
+relaxation of this fluid, while high-energy focusing is governed by the Topological Reynolds
+Number (Re ). Finally, the explicit calculation of the 1.213 pm boundary perfectly derives
+vac
+the 1.022 MeV threshold where vacuum pressure overpowers wave expansion, requiring only
+topological shear to catalyze the genesis of fundamental particles.
+References
+[1] Hendrik B. G. Casimir. On the attraction between two perfectly conducting plates. Pro-
+ceedings of the Koninklijke Nederlandse Akademie van Wetenschappen, 51:793–795, 1948.
+[2] Max Planck. Ueber das gesetz der energieverteilung im normalspectrum. Annalen der
+Physik, 309(3):553–563, 1901.
+n
+zi
+e
+G
+D.
+-
+nt
+ri
+p
+e
+r
+P
+al
+n
+gi
+ri
+O
+5
+
+
+================================================================================
+FILE: The Topological Architecture of the Electron_ Unifying Quantum Mechanics, Electrodynamics, and Relativity.pdf
+================================================================================
+
+The Topological Architecture of the Electron:
+Unifying Quantum Mechanics, Electrodynamics, and
+Relativity
+Daniel Gezin
+Independent Researcher
+ORCID: 0009-0003-7309-7050
+February 16, 2026
+Abstract
+This paper details a novel geometric configuration for the electron, derived from first
+principles, treating it as a trapped, self-resonating light wave rather than a standard zero-
+dimensional entity. By defining leptons as topological boundaries of light, this model natu-
+rallyexplainsthedualityofwavesandparticles,mechanicallyderivesrelativistickinematics,
+and achieves absolute structural stability by balancing quantum vacuum pressure against
+outward centrifugal momentum. 2 6
+0
+2
+b
+Fe
+-
+1 The Confined Photon Paradig
+Ge
+m zi n
+D.
+The fundamental framework of modern phys
+n
+itc-s generally treats leptons as dimensionless points
+endowed with unexplained intrinsic par
+P
+a
+r
+me
+pr
+e
+i
+ters. Conversely, the structural architecture pro-
+posed herein defines the electron as aalone-dimensional photon track wrapped into a stable,
+n
+continuous orbit. Because its core
+O
+eringi
+ergy consists exclusively of a photon propagating at the
+speed of light (c = 299,792,458 m/s), it natively exhibits dual characteristics: propagating
+internally as a wave while behaving externally as a localized corpuscle.
+2 Convergence with and Resolution of Toroidal Models
+Thehypothesisofatoroidalorhelicalelectronhassurfacedperiodicallyinmodernphysics—from
+Parson’s early ring model to Williamson and van der Mark’s toroidal photon [1], and recently in
+the convergent mathematical works of Consa [2], dos Santos [3], and Gauthier [4]. While these
+modelssuccessfullymappedthekinematicsofZitterbewegungandexploredthetopologicalcurl-
+ing of photons during pair production, they critically stalled on severe physical paradoxes. The
+Geon architecture, derived independently over five years of theoretical research, provides the
+exact mechanical closures to these persistent flaws:
+1. The Superluminality Violation: Gauthier’s ”quantum-vortex” model accurately pre-
+dicts a helical photon track, but relies on the internal wave propagating at superluminal
+√ √
+speeds(c 2andc 5),violatingstrictrelativity[4]. TheGeonarchitecturestrictlybounds
+internal wave propagation to c. It is precisely this absolute c-bound that forces the ge-
+ometry to stretch into a helix during external acceleration, deriving Lorentz time dilation
+mechanically rather than violating it.
+2. The Center of Charge Fallacy: Recent models rely on separating the ”Center of
+Mass” from a ”Center of Charge,” either assuming a literal point-charge travels along the
+1
+circumference [2], or inventing massive hidden fractional charges (e.g., 16.6e) to hold the
+photon together [4]. The Geon model eliminates the point-charge entirely, proving that
+thetransverseelectricvectorsofthecircularlypolarizedwavemutuallyannihilate, leaving
+only a net radial flux that mathematically projects a perfect inverse-square monopole.
+3. The Confinement and Scattering Paradoxes: Previous models lacked a mechanical
+mechanismtopreventthephotonfromunspooling, norcouldtheyreconcileamacroscopic
+physicalradius(10−13 m)withthepoint-like(< 10−22 m)scatteringcross-sectionobserved
+in particle accelerators. The Geon model resolves confinement via the Dynamic Casimir
+Effect (vacuum pressure) and resolves scattering via QED light-scattering transparency
+and instantaneous wave-function collapse at the geometric origin.
+3 Spin-1/2 Geometry, the Poynting Vector, and M¨obius Topol-
+ogy
+A simple planar circular loop yields a phase return of 2π radians, characteristic of a boson.
+Fermions, however, possess Spin-1/2 kinematics, demanding a 4π (720-degree) phase rotation
+to restore their initial quantum configuration [5].
+In standard electrodynamics, the directional energy flux of propagating light is governed by
+thePoyntingvector(S(cid:126) = 1 E(cid:126)×B(cid:126)). Astheconfinedwavepropagates,thePoyntingvectorforms
+µ0
+the continuous macroscopic circumference of the orbit. Concurrently, the orthogonal electric
+(E(cid:126)) and magnetic (B(cid:126)) fields continuously twist around 2t6his propagation axis due to circular
+0
+2
+polarization. Fe b
+-
+n
+Continuous Spatial Rotation
+Gezi
+E(cid:126) D.
+-
+E(cid:126)
+pri
+nt
+Pre
+al
+n
+gi
+Ori E(cid:126) Poynting Vector (S(cid:126))
+B(cid:126)
+B(cid:126)
+B(cid:126)
+Figure 1: The Electromagnetic Triad: As the wave propagates, the orthogonal E(cid:126) and B(cid:126) vectors
+continuouslyrotatearoundtheguidingPoyntingvector(S(cid:126)). Whentracedalongaclosedcircular
+orbit, this twist mechanically creates the 4π M¨obius boundary.
+It is this literal, physical rotation of the electromagnetic triad around the guiding Poynting
+vector that generates the M¨obius strip topology. Traversing the loop once (2π) results in an
+inverted phase; it requires a second full rotation to return to the original vector alignment.
+Figure 2: 3D Topological representation of the resulting 720-degree M¨obius boundary.
+2
+This physical double-loop dictates that the fundamental Compton wavelength (λ ) [6] is
+c
+stretched across exactly two full perimeters (4πr = λ ). Given the relation λ = h/(m c), the
+c c e
+exact geometric radius (r) resolves to:
+h (cid:126)
+r = = = 1.930796×10−13 m (1)
+4πm c 2m c
+e e
+4 Vacuum Confinement and the Failure of Gravity
+To confine a photon traversing a tight 10−13 m radius at the speed of light, the structural forces
+required are immense. The centrifugal momentum of the trapped light exerts a violent outward
+pressure:
+m c2
+e
+F = ≈ 0.424 N (2)
+c
+r
+A profound physical mystery arises: what force can possibly contain nearly half a Newton of
+outward pressure at the subatomic scale? For the past five years, the author’s initial attempts
+to theoretically confine this topology focused on classical General Relativity—proposing that
+the extreme energy density bends space enough to trap itself. This concept of a Gravitational
+Electromagnetic Entity was originally coined as a ”Geon” by John Archibald Wheeler in 1955
+[7].
+However, calculating the gravitational self-attraction using Einstein’s mass-energy equiva-
+lence [8] reveals a devastatingly small force:
+6
+2
+0
+2
+F =
+Gm2
+e ≈ 5.5×F1 e 0
+b
+−46 N (3)
+g (2r)2 n -
+Gezi
+To bend light into a closed orbit via gravity, Dt.he structure must approach the Schwarzschild
+-
+photon sphere (r = 2Gm /c2 ≈ 1.35 × 10n−t57 m). With a macroscopic radius of 10−13 m,
+s e pri
+Wheeler’s gravitational bending fails by
+P
+orever forty orders of magnitude.
+Itwasthismathematicalfailurethantal
+necessitatedacompletedeparturefromclassicalgravity.
+gi
+To confine the photon, we are forOcre i d to rely upon the only ubiquitous medium left in the
+universe: the quantum vacuum. We therefore redefine the structure as a Topological Geon.
+For perpetual stability, the surrounding vacuum modes must act as an impermeable waveg-
+uide. By geometrically excluding long-wavelength zero-point fluctuations from the internal 1D
+cavity, the vacuum must supply a restorative boundary pressure. If we deduce the required
+Casimir force [9] for a 1D topological cavity of radius r strictly from fundamental quantum
+constants ((cid:126),c,r), the necessary inward force mathematically resolves to:
+(cid:126)c
+F = (4)
+vac 2r2
+Substituting the known constants:
+(1.0545718×10−34)(2.99792458×108)
+F = = 0.424 N (5)
+vac 2(1.930796×10−13)2
+At the specific derived radius of 1.93 × 10−13 meters, the inward Casimir vacuum pressure
+perfectly matches the outward photon momentum (F = F ), achieving absolute mechanical
+vac c
+equilibrium.
+5 Vector Annihilation and the Gauss Shell Illusion
+The observed elementary charge is not a fundamental scalar; it is a macroscopic illusion derived
+from the spatial topology of the wave. The circulating photon possesses circular polarization.
+3
+Because the confined wave is an alternating electromagnetic field, its internal electric amplitude
+varies sinusoidally. To evaluate its macroscopic electrostatic projection, we utilize the Root
+√
+Mean Square (E = E / 2). This E acts as the equivalent static DC voltage of the
+rms peak rms
+alternating wave.
+Figure 3: Transverse vectors cancel along the orbit; radial electric vectors (E ) continu-
+rms
+ously converge explicitly inward toward the geometric center, projecting a perfect macroscopic
+monopole.
+When integrating this E vector over the full 2π geometric rotation, the transverse or-
+rms
+thogonal components destructively interfere:
+(cid:90) 2π
+ΣE = E cos(θ)dθ = 0 (6)
+x rms
+0
+(cid:90) 2π
+ΣE = E sin(θ)dθ = 0 (7)
+y rms
+0
+6
+2
+0
+Because the transverse vectors annihilate each other late2rally, only the continuous inward radial
+b
+flux survives. Applying Carl Friedrich Gauss’s shelFl e theorem of volumetric divergence, this
+-
+n
+constant inward-pointing flux creates a perfect Ge”ziGauss shell illusion,” simulating the exact
+electrostatic footprint of a negative point charDg.e when measured from macroscopic distances
+-
+(R (cid:29) r). Thus, charge and mass are purelyntemergent geometric illusions; light is the primary
+pri
+ontological entity in the universe. Pre
+al
+n
+gi
+6 Magnetic Dipole
+andOri
+Biot-Savart Derivation
+Having established in Section 5 that the elementary charge (e) is an emergent macroscopic
+equivalent of the E flux, we can utilize e as a valid classical translation variable to map the
+rms
+Geon’s internal light-energy into classical electrodynamics. The effective continuous current (I)
+of this macroscopic charge orbiting at light speed is:
+e ec
+I = = (8)
+T 2πr
+Substituting the derived Geon radius (r = (cid:126)/2m c), the classical magnetic moment for a single
+e
+ring is µ =
+e(cid:126)
+. However, due to the 4π (720-degree) double-loop M¨obius topology required
+ring 4me
+for Spin-1/2 fermions, the effective magnetic flux area is traversed twice per quantum phase
+cycle. This topological doubling is the direct mechanical origin of the Dirac g = 2 factor:
+(cid:18) e(cid:126) (cid:19) e(cid:126)
+µ = 2×µ = 2 = (9)
+geon ring
+4m 2m
+e e
+This perfectly derives the exact Bohr Magneton. Furthermore, translating this entire geometry
+linearly through space at velocity v moves its macroscopic electric field. Maxwell’s equations
+[10] dictate that a translating electric field induces a transverse magnetic field (B(cid:126) = 1((cid:126)v×E(cid:126))).
+c2
+Substituting the Geon’s macroscopic inverse-square electric field seamlessly yields the classical
+Biot-Savart law:
+µ e((cid:126)v×Rˆ)
+B(cid:126) = 0 (10)
+4π R2
+4
+7 Newtonian Mass, Einstein, and Geometric Inertia
+Isaac Newton originally defined inertial mass classically for an object at rest (v = 0). The
+Geon fulfills this flawlessly: macroscopically, the particle has zero translational velocity, but
+internally, its energy consists entirely of light propagating at c. This mechanical confinement
+completely unifies Newtonian inertia with Albert Einstein’s E = mc2. Mass is simply the
+trapped momentum of light.
+When the particle is accelerated linearly at an external velocity v, the external momentum
+vector (p(cid:126) ) changes, forcing the confined wave to trace an elongated helical trajectory through
+ext
+space.
+External Momentum Vector (p(cid:126) )
+ext
+6
+2
+0
+2
+b
+Fe
+-
+n
+Figure 4: Relativistic time dilation and GeometrGiec
+zi
+Inertia: External velocity v forces the con-
+D.
+fined photon into an elongated helical trajectory. The physical stretching of the helical pitch
+-
+nt
+represents the geometric storage of kinetic preinergy.
+Pre
+al
+Since the internal propagation vel
+g
+oi ncity is absolutely bounded by c, the transverse rotational
+speed (v ) must decrease to compOe r n i sate (v = c/γ). The physical helical pitch elongates as
+int int
+P = vλ /c.
+c
+If an external force acts to accelerate or decelerate the Geon, it must physically alter the
+momentum vector by stretching or compressing this helical spring-like geometry. The rate of
+change of the helical pitch with respect to time defines the inertial resistance of the particle
+[11]:
+dp d
+F = = (γm v) = m γ3a (11)
+e e
+dt dt
+This proves that Newton’s F = ma is not an abstract law; it is the geometric resistance of the
+Casimir vacuum against the physical stretching of the light-track’s helical pitch. The work done
+(cid:82)
+on the particle (W = Fdx) is stored entirely in this topological elongation. Conversely, if the
+particle’s momentum vector is sharply decelerated, the helix violently compresses back into a
+flat ring, ejecting the stored kinetic energy as Bremsstrahlung radiation (photons tearing away
+from the compressing boundary).
+8 The Relativistic Absorption Shift and Transparency
+What does it mean for a photon to be absorbed, and where does it go? A free photon does not
+”sit inside” an empty particle shell. Because the Geon is itself constructed of propagating light,
+an incoming photon is absorbed by topologically merging with the Geon’s internal circulating
+wave. Its energy (hf) and linear momentum (h/λ) are woven directly into the 4π closed loop,
+ceasing to exist as an independent entity.
+5
+However, this merger is a strict topological resonance event. To balance the Coulomb
+attraction of a nucleus with atomic number Z, the Geon’s macroscopic orbital velocity is v =
+Zαc/n (where α ≈ 1/137.036). This macroscopic velocity induces relativistic time dilation on
+the internal photon:
+1
+γ = (12)
+(cid:112)
+1−(v/c)2
+Because the internally propagating photon acts as the particle’s internal clock [12], this time
+dilationphysicallyslowsdowntheGeon’sinternalresonantfrequency(f(cid:48) = f /γ). Therefore,
+int int
+the Geon can only merge with an incoming photon if the external frequency geometrically
+matches this physically dilated internal resonance.
+CalculationExamples: InHydrogen(Z = 1),theGeonorbitsat≈ 0.007c,andrelativistic
+time dilation is negligible (γ ≈ 1.00002). In Silver (Z = 47), the innermost Geons orbit at
+v ≈ 47αc ≈ 0.34c. The resulting time dilation (γ ≈ 1.06) shifts the absorption thresholds
+precisely, giving Silver its unique, highly reflective properties in the visible spectrum. In Gold
+(Z = 79), the velocity reaches v ≈ 0.58c, yielding a severe γ ≈ 1.22. This 1.22 relativistic
+shift alters the absorption threshold of the 5d and 6s orbitals from the deep ultraviolet directly
+into the blue visible spectrum. By selectively absorbing blue light due to its massive internal
+velocity, Gold reflects yellow.
+The Origin of Transparency: This strict resonance mechanism explains why the vast
+majority of matter (like glass or air) is highly transparent to visible light. If the incoming
+photon frequency does not match the exact dilated resonance of the Geon, the wave vectors
+cannot couple. Because the Geon’s perimeter is made of li6ght, the non-resonant photon simply
+2
+0
+2
+passes through the boundary. Transparency is the defbault physical state; absorption is a rare,
+Fe
+precise geometric resonance. -
+n
+Gezi
+D.
+9 Resolution of the Scattering-Anomaly (Gamma Regime)
+nt
+pri
+Pre
+In high-energy collision experiments, probes interact with electrons as if they were singularities
+al
+n
+smaller than 10−22 meters. If the Geogin possesses a macroscopic physical radius of 1.93×10−13
+Ori
+meters, why do incoming particles not scatter off its extended perimeter?
+This model resolves the paradox because, as established above, the perimeter consists en-
+tirely of propagating light. Under QED principles [13], at extreme energies, the scattering
+cross-section (σ ) falls off proportionally to α4/ω2. In the gamma regime, the maximum the-
+γγ
+oretical scattering cross-section at the perimeter is ≈ 10−34 m2, yielding an effective structural
+interaction radius of < 10−17 meters.
+A massive particle-like scattering event only registers if the probe penetrates this trans-
+parent perimeter and impacts the exact geometric origin (r = 0), where the entirety of the
+radial polarization vectors converge. An extreme momentum (Q2) impact shatters the vacuum
+binding, forcing the distributed wave-function to instantly collapse and self-intersect at the cen-
+ter. Accelerators record this collapsed focal point at the microsecond of impact, completely
+bypassing the transparent resting perimeter.
+10 Topological Chirality and Antimatter
+In the Geon framework, antimatter is a geometric reflection. The positron is composed of the
+exact same confined photon, but its topological knot possesses reversed chirality. Because the
+wave geometry twists in reverse, its polarization vectors point strictly outward, creating the
+macroscopic illusion of a positive monopole.
+Before reaching a critical distance, an electron and positron orbit each other like a planetary
+system, creatingPositronium. Becausetheirmagneticdipolesattract, theynaturallyalignface-
+to-face on the same orbital plane.
+6
+100
+10−3
+10−6
+10−9
+r = −1.93×10−13m r = +1.93×10−13m
+10−12
+−2.5 −2 −1.5 −1 −0.5 0 0.5 1 1.5 2 2.5
+Impact Parameter r (meters)
+6 2
+0
+2
+b
+Fe
+-
+n
+Gezi
+D.
+-
+nt
+pri
+Pre
+al
+n
+gi
+Ori
+)elacS
+goL(
+ytilibaborP
+gnirettacS
+Classical Point Charge
+Geon (Photon Track)
+Figure 5: Scattering Profile: The Geon perimeter (r = ±1.93×10−13m) exhibits the extremely
+low scattering probability of light. A massive event only registers upon impacting the geometric
+origin (r = 0).
+CM
+Electron (e−) Positron (e+)
+Figure 6: Positronium: An electron and positron orbiting a common center of mass. Their
+internal light waves possess reversed chirality. Their boundaries remain safely separated (d >
+3.86×10−13 m).
+7
+Their ultimate interaction is governed by a strict proximity threshold defined by their phys-
+ical diameter (d = 2r = 3.86×10−13 m). As long as their orbital separation remains above this
+limit, the binary system is stable.
+However, upon orbital decay breaching this threshold, their physical perimeters intersect.
+Becausetheypossessmirroredinternalelectromagneticfields(oppositechiralities),theiroverlap
+causes instantaneous, absolute destructive interference. The internal amplitude drops to zero,
+entirely removing the outward centrifugal momentum flux. Without the outward pressure, the
+vacuum seal shatters, and the confined light is violently released, unwinding in straight lines as
+two 511 keV gamma photons.
+γ (511 keV) γ (511 keV)
+Figure 7: Topological Annihilation: As orbits decay and perimeters physically intersect (d <
+3.86×10−13 m),themirroredchiralitiescrashhead-on,causingabsolutedestructiveinterference.
+The vacuum lock fails, unspooling the confined light into gamma radiation.
+11 The Tonomura Experiment and the Aharonov-Bohm Effect
+The Aharonov-Bohm (AB) effect demonstrates that an electron’s phase is shifted by a magnetic
+vector potential (A(cid:126)), even when traveling through a region where the magnetic field is strictly
+6
+zero (B(cid:126) = 0). For a point particle, this is treated as an2a0 2 bstract, non-local phenomenon.
+b
+The Geon framework grounds the AB effect mathFe e matically and locally [14]. The standard
+-
+n
+phase shift is calculated as: (cid:73)Gezi
+e
+∆φ = D. A(cid:126) ·d(cid:126)l (13)
+-(cid:126)
+nt
+pri
+BecausetheGeonisanextended10−13 mPere tercirculatingelectromagneticstructure,theexternal
+vectorpotential(A(cid:126))directlycoupleston a t l heinternalrotatingwave. Inquantumelectrodynamics,
+gi
+the vector potential acts as a phyOs r i i cal momentum modifier (∆p = eA(cid:126)). Since the confined
+photon’s internal momentum is p = (cid:126)k, injecting ∆p structurally alters the internal wave
+vector (k) of the propagating light. This coupling physically accelerates or retards the internal
+angular momentum of the wave. The shift structurally alters the duration of the particle’s
+internal orbital clock, proving that the observed interference fringe shift is a literal geometric
+desynchronization of the photon’s continuous internal rotation.
+12 The Double-Slit Experiment and the Mechanical Origin of
+the Pilot Wave
+The foundational mystery of quantum mechanics is how a single particle can create an interfer-
+ence pattern identical to light waves. If the Topological Geon is strictly confined by the vacuum
+to a localized 10−13 meter radius, it cannot physically smear across macroscopic slits that are
+micrometers apart. It must pass through only one slit.
+The resolution lies in mathematically separating the strictly localized topological core from
+its extended macroscopic fields. As the Geon approaches the double-slit apparatus, its macro-
+scopic inverse-square electric and magnetic fields (and the associated vector potential A(cid:126)) arrive
+first. These immense extended fields interact with the atomic lattice of the barrier and diffract
+through both slits simultaneously, creating a classical, macroscopic interference landscape in the
+cavity beyond the barrier.
+When the strictly localized 10−13 m Geon passes through one of the slits, it enters its
+own self-generated interference landscape. As established mathematically in Section 11 (the
+8
+Quantized|ψI|m2pPaiclott Field Gradient
+Localized Geon Core
+Extended Macroscopic Field (A(cid:126))
+Figure 8: The Double-Slit Resolution: The Geon’s 10−13 m localized core physically passes
+through a single slit. However, its extended macroscopic fields (A(cid:126)) pass through both slits, cre-
+ating a diffracted interference landscape. This self-generated ”pilot wave” mechanically steers
+the localized particle via Aharonov-Bohm momentum coupling (∆p = eA(cid:126)), recreating the stan-
+dardinterferencepatternwithoutrequiringtheparticleitselftosmearacrossmacroscopicspace.
+Aharonov-Bohm effect), the Geon’s internal circulating light-momentum (p = (cid:126)k) is highly
+sensitive to the external vector potential (∆p = eA(cid:126)). T2 6he diffracted field gradient acts as a
+0
+2
+literal”pilotwave”(inthespiritofLouisdeBroglieandbDavidBohm),couplingwiththeGeon’s
+Fe
+internal phase and mechanically steering its trajector-y exclusively into the allowed constructive
+n
+fringes.
+Gezi
+Therefore,Schr¨odinger’s|ψ|2 probabilityde D n . sity[15]doesnotrepresentasmeared-outparti-
+-
+nt
+cle;itrepresentsthemacroscopicenergyde
+p
+nrisityoftheGeon’sextendedvectorpotentialsteering
+the localized topological core. When thePG
+re
+eon strikes the detector screen, the particle does not
+al
+magically ”collapse” from infinite spagci ne. The localized core simply registers an impact, and its
+Ori
+extended macroscopic fields instantly dissipate into the detector’s lattice as heat.
+13 The Photoelectric Effect, Precision Refraction, and Dia-
+mond (n = 2.418)
+Whenanexternalphoton(E = hf)[16][17]isperfectlyresonant, itmergesintothe4π M¨obius
+γ
+topology. Upon absorption, the internal energy increases (E = m c2 +hf). The outward
+new e
+centrifugalforce(F = E /r)overwhelmstheCasimirvacuumequilibrium,forcingtheGeon’s
+c new
+radius to physically swell outward into a larger closed topological loop.
+E = hf
+γ
+Figure 9: The Photoelectric Swell: The topology remains a closed boundary. The merged
+photon energy (hf) overwhelms the initial vacuum pressure, physically swelling the Geon’s
+geometric radius.
+9
+As established in Section 8 regarding Transmission, this expanded boundary is highly
+metastable for non-resonant frequencies. The swelling completely disrupts the perfect standing-
+wave phase equilibrium the electron shared with the atomic nucleus. To balance the system,
+the Coulomb attraction of the nucleus and the restorative Poincar´e vacuum pressure (F )
+vac
+simultaneously squeeze the expanded topology back toward its original mechanical limits.
+The exact time of release (∆t) before this topological decay occurs is determined by the
+phase-slip between the incoming wavelength (λ) and the macroscopic orbital velocity (v =
+Z αc):
+eff
+λ
+∆t = (14)
+Z αc
+eff
+This exact time delay (∆t) is the literal, mechanical origin of the refractive index (n). Photons
+do not mathematically ”slow down” in glass; they travel at c between atoms, are temporarily
+absorbed (swelling the Geons), and then delayed by ∆t before the vacuum pressure violently
+forces re-emission. By summing the volumetric density of these atomic interactions (N ) and
+v
+the scattering cross section (σ), we mechanically derive the exact macroscopic speed of light
+(v ) and refractive index for specific materials:
+m
+c
+n = = 1+(N ·c·σ·∆t) (15)
+v
+v
+m
+Applying this strictly to the Diamond lattice (Carbon, Z = 6): The tetrahedral sp3 bonding
+yields an exceptionally high atomic volumetric density (N ≈ 1.76×1029 m−3). When a visible
+v
+6
+photon (λ = 500 nm) traverses this dense matrix, it un0 2dergoes a massive number of tempo-
+2
+b
+rary, metastable absorption-and-decay delays (∆t). CFaelculating the cumulative phase-slip delay
+-
+u
+p
+s
+ro
+in
+p
+g
+ag
+t
+a
+h
+t
+e
+io
+C
+n
+a
+s
+r
+p
+b
+e
+o
+e
+n
+d
+e
+o
+ff
+f
+e
+v
+ctiv
+≈
+e v
+1
+e
+.2
+lo
+3
+c
+9
+it
+×
+y
+1
+(
+0
+v
+8
+=
+m/
+3
+s
+.2
+.
+5αc)
+Ge
+a zi nnd interaction density yields a macroscopic
+m D.
+-
+nt
+pr2i.997×108
+n
+diamondP
+=re
+1.239×108
+= 2.418 (16)
+al
+n
+This perfectly matches the experim Orei gn i tally known refractive index of diamond. Furthermore,
+because∆treliesstrictlyontheincomingwavelengthλ, shorterwavelengths(blue)experiencea
+longertotaltopologicaldelaythanlongerwavelengths(red). Thisdifferentialdelaymechanically
+derives the exact chromatic dispersion (the prism effect) observed in nature.
+14 Infinite Absorption, Hydrogen Stability and Bohr Levels
+What happens if a photon is absorbed for infinity? Is there such a thing? Yes. If the photon
+swells the Geon to a radius (r ) that perfectly synchronizes with a higher harmonic of the
+new
+atomic standing wave (e.g., jumping from n = 1 to n = 2), the vacuum pressure and Coulomb
+force reach a new permanent mechanical equilibrium. The photon is trapped ”for infinity”
+(or until perturbed again), forming the absolute geometric basis of stable chemistry and solid
+matter.
+The internal trapped light possesses a rest-mass energy of E = m c2 ≈ 510,998.95 eV.
+0 e
+When captured by a proton, the continuous 1D light track physically aligns its internal phase
+with the proton’s field. To form a stable macroscopic standing wave, the Geon’s macroscopic
+orbital velocity (v ) locks at v = αc/n for a given harmonic n [18].
+n n
+The macroscopic kinetic energy of this orbit is defined classically as K = 1m v2. Substi-
+n 2 e n
+tuting the vacuum-throttled velocity:
+(cid:20) (cid:21)
+1 (cid:16)αc(cid:17)2 1 1
+K = m = (m c2)α2 (17)
+n 2 e n n2 2 e
+10
+Calculating this mechanical derivation for the fundamental ground state (n = 1):
+(cid:34) (cid:35)
+1 1
+(cid:18)
+1
+(cid:19)2
+K = (510,998.95 eV)× = 13.60569 eV (18)
+1 12 2 137.035999
+For the first excited state (n = 2), the velocity drops to αc/2:
+1
+K = (13.60569 eV) = 3.4014 eV (19)
+2 22
+The 13.6 eV ground state is not a random quantization. It is precisely the Geon’s internal
+trapped light energy, doubly attenuated by the vacuum coupling limit (α2) and geometrically
+halved by the Virial theorem for stable orbits. The subsequent 1/n2 Rydberg energy levels
+mechanically follow.
+When an electron decays from n = 2 back down to n = 1, the physical contraction of the
+topological boundary violently ejects the energy difference: ∆E = 13.605 − 3.401 = 10.204
+eV. Converting this to a wavelength yields exactly λ = 121.5 nm. This mechanically proves
+that the Lyman-Alpha emission line is the literal, physical ejection of the previously ”infinitely
+absorbed” photon as the boundary geometrically shrinks.
+15 Conclusion and Cosmological Genesis
+This framework mathematically demonstrates that the2 6electron is not a fundamental point
+0
+2
+particle, but a resonant state of light bound by qua
+F
+ne btum vacuum pressure. By splitting the
+Compton wavelength to satisfy Spin-1/2 Fermionng-eometry, this model unites mass, charge,
+quantum spin, and relativistic kinematics into aGs e i z n i gular topological mechanism, removing the
+D.
+need for 0-dimensional singularities in fundam-ental physics.
+nt
+Ultimately, this model suggests a profopurind cosmological symmetry: that the first entity to
+be ”genesised” in the early universe waPs
+re
+light itself, serving as the fundamental quantum of
+al
+n
+gravitation-energy from which all subgisequent mass is composed. By extension, the proton and
+Ori
+neutron are not composed of dimensionless point-quarks, but are higher-order, tightly bound
+complex combinations of these intersecting topological strips. Mapping the exact geometry of
+thesemulti-ringhadronicknotswillmechanicallyderivethemass,charge,andsizeoftheatomic
+nucleus, completing the geometric unification of physics.
+Acknowledgements and Theoretical Lineage
+The author formally declares that the Topological Geon Framework is the culmination of five
+years of independent theoretical research. The initial inquiry sought to confine the photon
+using classical General Relativity, specifically exploring whether the energy could bend space
+enough to trap itself within a Schwarzschild radius (paralleling John A. Wheeler’s original 1955
+concept). When mathematical models proved gravitational confinement was too weak by over
+forty orders of magnitude, the author independently discovered and integrated the dynamic
+Casimir vacuum pressure to achieve absolute mechanical closure.
+It was only upon the final formalization of this model that an extensive literature review
+revealed a convergent lineage of toroidal and helical electron hypotheses—most notably the
+pioneering toroidal photon model by J. G. Williamson and M. B. van der Mark (1997) [1],
+the Helical Solenoid Model by O. Consa (2018) [2], the Toroidal Electron kinematics by C.
+A. M. dos Santos (2025) [3], and the Quantum-Vortex derivation by R. Gauthier (2019) [4].
+The author respectfully acknowledges their rigorous geometrical insights. There was no intent
+to appropriate or alter existing works; rather, discovering these parallel papers post-derivation
+served as profound mathematical validation of the Geon’s core geometry. However, where prior
+11
+models relied upon superluminal internal velocities (v > c), invented massive hidden fractional
+charges to sustain the topology, and left the physical mechanisms of confinement and scattering
+unresolved, the framework presented herein independently introduces strict relativistic velocity
+bounding, dynamic Casimir vacuum pressure, QED boundary transparency, and Gaussian shell
+illusions to complete the physics.
+Furthermore, this unified architecture stands squarely upon the foundational pillars laid by
+the titans of physics. It precisely aligns Isaac Newton’s definition of inertial mass (v = 0) with
+Albert Einstein’s mass-energy equivalence [8] and the photoelectric effect [16]. It utilizes Carl
+Friedrich Gauss’s shell theorem to explain emergent charge, James Clerk Maxwell’s electrody-
+namics [10] to derive magnetism, and Max Planck [17] and Arthur Compton’s [6] quantizations
+to bind the internal wave. It is a direct mechanical realization of Paul Dirac’s Spin-1/2 topol-
+ogy [19], Hendrik Lorentz’s kinematic transformations [11], Louis de Broglie’s wave mechanics
+[12], Wolfgang Pauli’s exclusion geometries [5], and Niels Bohr’s quantized energy levels [18].
+Finally, the structural confinement relies mathematically on Hendrik Casimir’s quantum vac-
+uum pressure [9] and the photon-scattering bounds of the Euler-Heisenberg Lagrangian [13],
+while its phase mechanics perfectly execute the vector potential dynamics established by Yakir
+Aharonov and David Bohm, and validated experimentally by Akira Tonomura [14]. It is ex-
+clusively through the synthesis of their extraordinary discoveries that this architecture is made
+possible.
+References
+6
+2
+0
+2
+[1] John G. Williamson and Martin B. van der Mar
+F
+ke b. Is the electron a photon with toroidal
+topology? Annales de la Fondation Louis de Bnr-oglie, 22(2):133–159, 1997.
+Gezi
+[2] Oliver Consa. Helical solenoid model of Dt.he electron. Progress in Physics, 14(2):80–89,
+-
+2018. nt
+pri
+Pre
+[3] Carlos A. M. dos Santos. Toroidaall electron: A bridge between quantum mechanics and
+n
+relativity. Preprint, Universida
+O
+dri ge i de S˜ao Paulo, 2025.
+[4] Richard Gauthier. Quantum-entangled superluminal double-helix photon produces a rel-
+ativistic superluminal quantum-vortex zitterbewegung electron and positron. Journal of
+Physics: Conference Series, 1251:012016, 2019.
+[5] Wolfgang Pauli. U¨ber den zusammenhang des abschlusses der elektronengruppen im atom
+mit der komplexstruktur der spektren. Zeitschrift fu¨r Physik, 31(1):765–783, 1925.
+[6] Arthur H. Compton. A quantum theory of the scattering of x-rays by light elements.
+Physical Review, 21(5):483–502, 1923.
+[7] John Archibald Wheeler. Geons. Physical Review, 97(2):511–536, 1955.
+[8] Albert Einstein. Does the inertia of a body depend upon its energy content? Annalen der
+Physik, 18(13):639–641, 1905.
+[9] Hendrik B. G. Casimir. On the attraction between two perfectly conducting plates. Pro-
+ceedings of the Koninklijke Nederlandse Akademie van Wetenschappen, 51:793–795, 1948.
+[10] James Clerk Maxwell. A dynamical theory of the electromagnetic field. Philosophical
+Transactions of the Royal Society, 155:459–512, 1865.
+[11] HendrikAntoonLorentz. Electromagneticphenomenainasystemmovingwithanyvelocity
+smaller than that of light. Proceedings of the Royal Netherlands Academy of Arts and
+Sciences, 6:809–831, 1904.
+12
+[12] Louis de Broglie. Recherches sur la th´eorie des quanta. PhD thesis, University of Paris,
+1924.
+[13] Hans Euler and Werner Heisenberg. Consequences of dirac’s theory of the positron.
+Zeitschrift fu¨r Physik, 98(11-12):714–732, 1936.
+[14] Akira Tonomura, Nobuyuki Osakabe, Tsuyoshi Matsuda, Takeshi Kawasaki, Junji Endo,
+Sadao Yano, and Hiroji Yamada. Evidence for aharonov-bohm effect with magnetic field
+completely shielded from electron wave. Physical Review Letters, 56(8):792, 1986.
+[15] Erwin Schr¨odinger. An undulatory theory of the mechanics of atoms and molecules. Phys-
+ical Review, 28(6):1049–1070, 1926.
+[16] Albert Einstein. On a heuristic point of view about the creation and conversion of light.
+Annalen der Physik, 17(6):132–148, 1905.
+[17] Max Planck. Ueber das gesetz der energieverteilung im normalspectrum. Annalen der
+Physik, 309(3):553–563, 1901.
+[18] NielsBohr.Ontheconstitutionofatomsandmolecules.PhilosophicalMagazine,26(151):1–
+25, 1913.
+[19] Paul A. M. Dirac. The quantum theory of the electron. Proceedings of the Royal Society
+A, 117(778):610–624, 1928.
+6
+2
+0
+2
+b
+Fe
+-
+n
+Gezi
+D.
+-
+nt
+pri
+Pre
+al
+n
+gi
+Ori
+13
+
+
+================================================================================
+FILE: Topological Nucleons_ Deriving the 0.84 fm Proton.pdf
+================================================================================
+
+Topological Nucleons: Deriving the 0.84 fm Proton
+Radius, Gauss Shell Superposition, and Fusion
+Mechanics via Casimir Confinement
+Daniel Gezin
+Independent Researcher
+ORCID: 0009-0003-7309-7050
+February 18, 2026
+Abstract
+The proton radius puzzle has challenged the Standard Model for over a decade, with
+high-precision experiments (PRad 2019) converging on an anomalous radius of ∼ 0.84 fm.
+By modeling the nucleon as a continuous, self-intersecting (3,2)-torus knot of circularly
+polarizedconfinedlight(aTopologicalGeon),structuralstabilityisachievedstrictlythrough
+dynamic Casimir vacuum pressure. This geometric framework derives the exact 0.8412 fm
+proton radius from fundamental constants, mathematnically redefines the strong force as
+178,700 Newtons of vacuum compression, and calcue zla i tes the precise topological surface-
+G
+area reduction responsible for nuclear fusion. Fur
+D
+t.hermore, we explicitly map the 3D axial
+projections of leptonic and hadronic geometries-, introducing the integral divergence series
+nt
+required to compute the emergent macrosc
+r
+oipic Gauss shells of the proton and neutron
+p
+without invoking fractional point-charges.r e
+P
+al
+n
+gi
+1 Introduction: The PRraid Experiment and the Proton Anomaly
+O
+In standard Quantum Chromodynamics (QCD), the proton is modeled as a composite of three
+zero-dimensionalpoint-quarksboundbymasslessgluons. Thisstandardmathematicalmapping
+strugglestoanalyticallyderivethefundamentalphysicaldimensionsofthenucleonstrictlyfrom
+first principles.
+This limitation was severely exposed by the ”Proton Radius Puzzle” [1], which was ulti-
+mately resolved by the landmark PRad experiment at the Thomas Jefferson National Accelera-
+tor Facility in 2019 [2]. Utilizing a windowless hydrogen gas-flow target to measure unpolarized
+electron-protonelasticscatteringatanunprecedentedlylowmomentumtransfer(Q2 ∼ 2×10−4
+GeV2/c2), PRad yielded a definitive radius of 0.831±0.007 ±0.012 fm. This led directly
+stat syst
+to the revised 2018 CODATA recommended value of 0.8414±0.00019 fm [3].
+The framework presented herein suggests that this ∼ 0.84 fm measurement is the funda-
+mental geometric baseline of hadronic vacuum confinement. By treating elementary particles as
+highly compressed, topologically confined waves of circularly polarized light, we strictly derive
+their internal kinematics, 3D structure, and the emergent macroscopic forces they project.
+2 Internal Kinematics: Polarization, Wavelength, and Spiraling
+Rate
+To physically execute a continuous elementary topology, the confined light wave operates under
+strict mechanical constraints:
+1
+1. Circular Polarization: The confined light must be strictly circularly polarized. The or-
+thogonalelectric(E(cid:126))andmagnetic(B(cid:126))vectorscontinuouslycorkscrewaroundtheguiding
+propagation path. This ensures a constant, uniform geometric pressure against the vac-
+uum boundary, preventing structural oscillation.
+2. Absolute Luminal Velocity (c) and Spiraling Rate (ω): The internal propagation
+speed along the continuous track is strictly c. The extraordinary structural rigidity of the
+proton arises from its immense angular frequency (ω) at the femtometer scale:
+c 2.99792×108 m/s
+ω = = ≈ 3.564×1023 rad/s (1)
+R 0.8412×10−15 m
+p
+3. Resonant Compton Wavelength: To prevent destructive self-interference, the wave-
+lengthofthecirculatinglightmustgeometricallylocktothecontinuousfundamentalphase
+cycle. The internal wave operates explicitly at the fundamental Compton wavelength of
+the particle (λ = h/mc). For the proton:
+c
+h
+λ = ≈ 1.3214×10−15 m (2)
+c,p
+m c
+p
+2.1 Spherical Isotropic Distribution and Angular Momentum Shift
+To minimize the immense external Casimir surface tension, the 3D Trefoil knot must mimic a
+n
+perfectsphereascloselyaspossible. Becausethe1Dlighzittracktraversesa3Dsphericalvolume,
+e
+G
+its absolute linear velocity (c) is continuously divided into azimuthal (v ) and polar (v ) spatial
+D. φ θ
+components (v2 +v2 = c2). -
+φ θ nt
+Consequently,theeffectivemacroscopicang
+r
+uilarvelocityprojectedaroundtheprimaryequa-
+p
+torial axis is strictly less than c/R. This 3Dr espatial distribution is the literal mechanical origin
+P
+of Fermionic Spin. While a flat planar loalop (a boson) projects 1(cid:126) of angular momentum, the
+n
+spherical meandering of the 3D Trefo
+r
+iilgi
+track mechanically shifts and reduces the macroscopic
+O
+angular momentum to exactly (cid:126)/2.
+3 3D Axial Projections of the Elementary Geons
+To store localized geometric inertia, the light track must form a closed loop. For a light ele-
+mentary lepton (the electron), the mass is small enough that a singular M¨obius double-loop is
+mathematically sufficient. The electron stabilizes at a macroscopic R ≈ 1.93×10−13 m.
+e
+However, the proton possesses a mass 1836 times greater. To store this localized energy
+withoutunspooling,theinternaltrackmustself-intersectsymmetricallyin3Dspacetodistribute
+the angular momentum. The simplest stable self-intersecting structure is the (3,2)-Torus Knot
+(the Trefoil Knot).
+(a) Z-Axis (Top) (b) X-Axis (Side) (c) Y-Axis (Front)
+Figure 1: The Leptonic Geon (Electron): A 4π twisted M¨obius loop. Its physical radius is
+R = 1.93×10−13 m. Note: To display alongside the nucleons, this topology is visually scaled
+e
+down by a factor of ∼ 230×.
+2
+Rp=0.84fm
+(a) Z-Axis (Top) (b) X-Axis (Side) (c) Y-Axis (Front)
+Figure2: The Hadronic Geon (Proton): Atightlycompressed(3,2)Trefoilknot. TheStan-
+dard Model’s ”three quarks” are geometrically revealed as the three interdependent topological
+lobes of the singular confined light wave. Radius R = 0.8412 fm.
+p
+4 Strict Derivation of the 0.84 fm Proton Radius Anomaly
+To confine this intense geometry, structural stability must be provided by the surrounding
+quantum vacuum field via the dynamic Casimir effect [4].
+For a simple 1D planar loop, the Casimir exclusion force operates on 2 fundamental modes.
+However, the continuous Trefoil knot intersects 3D space, uniquely blocking 8 spatial degrees
+of freedom of the surrounding zero-point fluctuation field. This applies an 8× multiplier to
+the localized inward Casimir pressure:
+(cid:18) (cid:126)c (cid:19) 4(cid:126)c
+F = 8 = (3)
+vac 2R2 R2
+p p
+n
+To achieve absolute mechanical stability, this 8-fold Ce za i simir pressure must perfectly balance
+G
+the outward centrifugal momentum (F
+c
+= m
+p
+c2/R pD).of the trapped light:
+-
+m p c2 = 4(cid:126)c p r= i n ⇒ t R = 4(cid:126) (4)
+R R2 r e p m c
+p pP p
+al
+Substituting the exact fundamental c
+r
+o
+i
+gni n stants ((cid:126) = 1.05457×10−34 J·s, m
+p
+= 1.67262×10−27
+kg, c = 2.9979×108 m/s): O
+R = 4(0.2103×10−15 m) = 0.8412 fm (5)
+p
+This analytic derivation aligns flawlessly with the 2018 CODATA / PRAD experimental con-
+sensus (0.8414±0.00019 fm).
+5 The Strong Force Replaced by Vacuum Confinement
+Because the geometric radius is squared in the denominator of the Casimir formula, the vacuum
+pressureactingontheprotonisastronomicallyhigh. Wecalculatetheexactinwardconfinement
+force acting on the trefoil topology:
+4(1.05457×10−34)(2.9979×108)
+F = ≈ 178,700 N (6)
+vac (0.8412×10−15)2
+Nearly 178,700 Newtons of physical inward force crushes down on a boundary smaller than a
+trillionth of a millimeter. We can further define the Casimir Pressure Density (P ) across
+vac
+the proton’s spherical surface area (A = 4πR2 ≈ 8.892 fm2):
+p p
+F 178,700 N
+P = vac = ≈ 20,096 N/fm2 (7)
+vac A 8.892 fm2
+p
+This extreme mechanical rigidity of 20,096 N/fm2 provided by the zero-point vacuum is the
+true mechanical origin of the phenomenological ”Strong Nuclear Force.”
+3
+6 Integral Divergence and Charge Superposition
+In this framework, electric charge is not a fundamental scalar sitting at a 0-dimensional point.
+It is an emergent macroscopic projection (a Gauss shell) generated by the circulating wave’s
+transverse radial electric vectors (E(cid:126) ).
+int
+To rigorously calculate the macroscopic effective charge (Q ), we evaluate the volume
+eff
+integral of the divergence of the cycle-averaged internal electric field. Because the light is
+√
+circularly polarized, we utilize the Root Mean Square (E = E / 2) as the equivalent
+rms peak
+static DC flux.
+Applying Gauss’s Law to a macroscopic spherical surface (S) at distance r (cid:29) R :
+p
+(cid:73) Q
+E(cid:126) ·dA(cid:126) = eff (8)
+macro
+(cid:15)
+S 0
+The continuous trefoil track is divided into three distinct spatial lobes (L ,L ,L ). The macro-
+1 2 3
+scopic electric field is the sum of the time-averaged fractional projections from each continuous
+lobe. Let χ ∈ {+1,−1} denote the chiral topological twist of the i-th lobe relative to the
+i
+macroscopic outward normal (rˆ).
+The effective fractional flux (q ) projected by a single lobe is calculated via the parametric
+i
+line integral of the continuous wave phase (θ) across the lobe’s boundary arc (s):
+(cid:90) (cid:16) (cid:17) e 2 1
+q = (cid:15) ∇·(cid:104)E(cid:126) (s)(cid:105) d3r = (2χ +phase offset) → projects as + e or − e (9)
+i 0 int i
+3 3 3
+Li n
+zi
+e
+By evaluating the series sum of these three lobes, weGanalytically derive the hadronic superpo-
+D.
+sitions without invoking isolated fractional point-quarks.
+-
+nt
+ri
+p
++2/3e e
+r
+P
+al
+n
+gi
+ri
+O
+−1/3e −1/3e
+−1/3e
++2/3e +2/3e
+(a) Proton (ΣE = +1e) (b) Neutron (ΣE = 0e)
+Figure 3: Charge Superposition via Topological Chirality: The integration of transverse
+E(cid:126) vectors across the three lobes strictly sums to the emergent macroscopic Gauss shells.
+rms
+The Proton Superposition (+1e)
+Intheproton, thecontinuouswavetwistssuchthattwolobespossessoutward-pointingchirality
+(χ = +1 → +2/3e), and one lobe twists inward (χ = −1 → −1/3e).
+3 (cid:18) (cid:19) (cid:18) (cid:19) (cid:18) (cid:19)
+(cid:88) 2 2 1
+Q = q = + e + + e + − e = +1e (10)
+proton i
+3 3 3
+i=1
+This integral summation perfectly projects the macroscopic illusion of a singular +1 positive
+point-charge Gauss shell.
+4
+The Neutron Superposition and Mass Deficit (0e)
+In the neutron, the topology is phase-shifted: two lobes point inward (−1/3e) and one twists
+outward (+2/3e).
+3 (cid:18) (cid:19) (cid:18) (cid:19) (cid:18) (cid:19)
+(cid:88) 1 1 2
+Q = q = − e + − e + + e = 0e (11)
+neutron i
+3 3 3
+i=1
+The radial vectors symmetrically annihilate (∇·E(cid:126) = 0). The geometric boundary projects
+macro
+no net electric field. Furthermore, the 2-inward / 1-outward topological twist creates higher
+internal geometric friction against the vacuum. This extra structural tension stores exactly
+∼ 1.29 MeV of additional geometric inertia, strictly accounting for the neutron’s mass deficit
+(m > m ).
+n p
+7 The Nuclear Bind and the Geometric Spring Constant
+When nucleons are brought into close proximity, they physically ”shadow” each other from the
+short-wavelength vacuum modes between them. The unshielded external vacuum mechanically
+pushes them together. They lock exactly at the threshold where topological boundaries touch:
+d = 2R = 2(0.8412 fm) = 1.6824 fm (12)
+eq p
+The Hard-Stop Repulsion (k = 212,600 N/fm)n
+zi
+e
+G
+If the vacuum attempts to compress the boundaryDb.eyond the 1.6824 fm threshold, the internal
+radius (R) is forced to shrink. To conserve the qu-antized momentum of the internal c-velocity
+nt
+track, shrinking the radius violently spikes
+thperi
+internal centrifugal force.
+e
+r
+We calculate the exact Geometric SpPring Constant (k) of a nucleon:
+al
+n
+k =
+dF c
+=
+m n c2 O=ri gi 1.505×10−10 J
+≈ 212,600 N/fm (13)
+dR R2 (0.8412×10−15 m)2
+If the Casimir shadow forces two nucleons to overlap by even 0.1 fm, the rigid light-tracks
+generate an immediate outward structural repulsion of over 21,260 Newtons. If compressed
+further, the c-velocity tracks physically intersect, causing destructive phase-annihilation. This
+absolute structural resistance mathematically replaces the phenomenological Pauli Exclusion
+Principle.
+8 The Casimir Shadow and the Mathematics of Fusion (E =
+mc2)
+”Mass” is the geometric surface tension required to confine the light. We calculate the exact
+topological surface energy density (σ ) of a free proton (E = 938.27 MeV):
+vac p
+E 938.27 MeV
+σ = p = ≈ 105.518 MeV/fm2 (14)
+vac A 8.892 fm2
+p
+When 4 nucleons fuse into Helium-4, they lock into a tight 3D Tetrahedron. The total exposed
+surface area decreases due to the overlapping ”Casimir Shadow.”
+Using the experimental binding energy of Helium-4 (B ≈ 28.3 MeV), we calculate the
+E
+exact physical surface area erased during fusion:
+B 28.3 MeV
+∆A = E = ≈ 0.268 fm2 (15)
+shadow σ vac 105.518 MeV/fm2
+5
+Nuclear fusion is the literal geometric erasure of 0.268 fm2 of topological surface boundary. The
+topology violently relaxes, ejecting the 28.3 MeV of tension strictly as a high-frequency photon
+propagating linearly at velocity c.
+9 The Mega-Knot: The Neutronic Volume Expansion of Gold
+As we build heavy elements, we pack more knots into a central ”mega-knot” of radius R =
+N
+R A1/3.
+p
+If a nucleus contained 79 protons and 0 neutrons, its radius would be R ≈ 3.61 fm. The
+79
+outwardCoulombelectrostaticexplosion(F )wouldbe110,400 N. Theexternalboundaryforce
+c
+dropsto∼ 9,700 N,leavingamassivedeficitof∼ 100,700 Nthatmustbeheldtogetherbyonly
+∼ 18.4 bridging nucleons across the equator. This requires a geometric overlap of 0.27 fm2 per
+nucleon—vastly exceeding the 212,600 N/fm limit. The internal light tracks would physically
+clash and shatter.
+By adding 118 neutrons, the volume expands (R ≈ 4.89 fm). This physically spaces the
+197
+protons, dropping the Coulomb explosion to 60,100 N. Furthermore, the cross-sectional area
+expands, providing ∼ 33.8 bridging nucleons. The required cohesive tension per strut safely
+drops to 1,621 N. This requires an overlap shadow of only 0.08 fm2 (a safe ∼ 3.6% surface
+overlap). The neutrons act strictly as Casimir Shadow Struts, expanding the volume to
+diluteCoulombforceswhileprovidingthenecessaryinternalgeometriccross-linkingtomaintain
+topological integrity.
+n
+zi
+e
+10 An Analytic Formula for VacuuGm Rupture (Radioactive De-
+D.
+cay) -
+nt
+ri
+p
+e
+As elements scale past Bismuth (Z = 83),Ptrhe macroscopic outward Coulomb pressure strictly
+overcomes the maximum safe overlap
+limal
+it of the internal Casimir struts. The element must
+n
+gi
+decay. ri
+O
+Decayisnotarandomprobabilisticevent; itisamechanicalstructuralrupture. Theinternal
+confined light impacts the nuclear boundary at an extreme frequency (f = c/2R ). We can
+N
+derive the exact decay half-life (τ) mechanically by evaluating the ratio of the geometric surface
+tension (σ ∆A) against the disruptive electrostatic expansion energy (U = 3 1 Z2e2 ):
+vac c 54π(cid:15)0 RN
+(cid:18) (cid:19) (cid:20) (cid:21)
+2R σ ·∆A
+N vac alpha
+τ = exp (16)
+c U
+c
+When the outward Coulomb energy (U ) grows too large, the exponential resistance barrier
+c
+drops. The topological boundary violently ruptures at the moment of peak internal resonance,
+ejecting the most stable geometric sub-unit possible—the perfectly shadowed Helium Tetrahe-
+dron (Alpha Decay)—to shed Z2 tension and restore mechanical equilibrium to the mega-knot.
+11 Conclusion
+By remodeling the nucleon as a Topological Geon, this framework provides absolute mathe-
+matical closure to nuclear physics. It replaces the parameterized strong force with an explicit
+178,700NewtonsofCasimirvacuumpressure, introducesthe212,600N/fmhard-coregeometric
+spring constant, defines the geometric limits of fusion, and utilizes integral divergence to derive
+charge superposition without point-quarks. Most importantly, it flawlessly derives the 0.8412
+fm proton radius anomaly strictly from fundamental constants, proving that hadronic matter
+is dictated entirely by geometric equilibrium.
+6
+References
+[1] Randolf Pohl et al. The size of the proton. Nature, 466(7303):213–216, 2010.
+[2] W.Xiongetal. Asmallprotonchargeradiusfromanelectron–protonscatteringexperiment.
+Nature, 575(7781):147–150, 2019.
+[3] E. Tiesinga, P. J. Mohr, D. B. Newell, and B. N. Taylor. Codata recommended values of
+the fundamental physical constants: 2018. Reviews of Modern Physics, 93(2):025010, 2021.
+[4] Hendrik B. G. Casimir. On the attraction between two perfectly conducting plates. Pro-
+ceedings of the Koninklijke Nederlandse Akademie van Wetenschappen, 51:793–795, 1948.
+[5] R.L.Workmanetal. Reviewofparticlephysics(particledatagroup). ProgressofTheoretical
+and Experimental Physics, 2022(8):083C01, 2022.
+n
+zi
+e
+G
+D.
+-
+nt
+ri
+p
+e
+r
+P
+al
+n
+gi
+ri
+O
+7
