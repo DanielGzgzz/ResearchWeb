@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geon Framework: Deterministic Orbital Simulation</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; color: #fff; font-family: monospace; }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
+        .panel { background: rgba(10, 10, 15, 0.8); border: 1px solid #333; padding: 15px; border-radius: 8px; pointer-events: auto; backdrop-filter: blur(5px); }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        select, input[type="range"] { width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 5px; outline: none; }
+        button { background: #005bb5; border: none; color: white; padding: 8px 16px; cursor: pointer; border-radius: 4px; font-family: monospace; font-weight: bold; width: 100%; }
+        button:hover { background: #0073e6; }
+    </style>
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="panel" style="width: 300px;">
+            <h1 class="text-lg font-bold text-blue-400 mb-4 border-b border-gray-700 pb-2">Geon Deterministic Orbit Integrator</h1>
+
+            <div class="control-group">
+                <label>Principal Quantum Number (n)</label>
+                <select id="sel-n">
+                    <option value="1">n = 1</option>
+                    <option value="2" selected>n = 2</option>
+                    <option value="3">n = 3</option>
+                    <option value="4">n = 4</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Azimuthal Quantum Number (l)</label>
+                <select id="sel-l">
+                    <option value="0">l = 0 (s-orbital)</option>
+                    <option value="1" selected>l = 1 (p-orbital)</option>
+                    <option value="2">l = 2 (d-orbital)</option>
+                    <option value="3">l = 3 (f-orbital)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Magnetic Quantum Number (m)</label>
+                <select id="sel-m">
+                    <option value="-1">m = -1</option>
+                    <option value="0" selected>m = 0</option>
+                    <option value="1">m = 1</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Simulation Speed (Steps per Frame)</label>
+                <input type="range" id="sim-speed" min="1" max="500" value="100">
+            </div>
+
+            <button id="btn-restart">Drop Particle & Weave Cloud</button>
+            <button id="btn-clear" style="background:#555; margin-top: 10px;">Clear Canvas</button>
+        </div>
+
+        <div class="panel" style="max-width: 400px; align-self: flex-end;">
+            <p class="text-xs text-gray-400 leading-relaxed">
+                <strong class="text-white">Fluid-Dynamic Trajectory Tracking:</strong><br><br>
+                Instead of randomly scattering points based on the Schrödinger probability distribution (Monte Carlo),
+                this engine drops a single particle into the mathematical Casimir/Centrifugal equilibrium bowl. <br><br>
+                Using Euler integration, the continuous continuous fluid-dynamic forces (Fr, Fθ, Fφ) drive the particle
+                in real-time to organically weave the dense 3D orbital shape over thousands of frames.
+            </p>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
