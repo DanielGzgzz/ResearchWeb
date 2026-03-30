@@ -16,9 +16,39 @@
     background: #475569;
 }
 
+/* KaTeX adjustments */
 .katex-display {
-    margin: 0 !important;
+    margin: 0.5rem 0 !important;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 0.25rem;
+}
+
+/* Range input styling */
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #60a5fa;
+    cursor: pointer;
+    margin-top: -6px;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: #4b5563;
+    border-radius: 2px;
+}
+
+input[type=range]:focus {
+    outline: none;
 }
