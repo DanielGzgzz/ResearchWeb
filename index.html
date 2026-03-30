@@ -2,92 +2,71 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Geon Framework Particle Grid</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #ffffff;
-            font-family: serif;
-        }
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-        }
-        /* Overlay text matching the image labels */
-        .labels {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geon Framework Simulations</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
-        .row {
-            flex: 1;
-            display: flex;
-            align-items: center;
-        }
-
-        .header-row {
-            height: 80px;
-            display: flex;
-            align-items: flex-end;
-            padding-bottom: 20px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .header-col {
-            flex: 1;
-            text-align: center;
-        }
-
-        .row-label {
-            width: 80px;
-            text-align: center;
-            transform: rotate(-90deg);
-            transform-origin: center;
-            font-weight: bold;
-            font-size: 16px;
-            white-space: nowrap;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="labels">
-        <div class="header-row">
-            <div style="width: 80px;"></div>
-            <div class="header-col">Top View</div>
-            <div class="header-col">Isometric View</div>
-            <div class="header-col">Side Profile</div>
+<body class="bg-gray-900 text-white overflow-hidden flex h-screen w-screen font-sans">
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="w-80 bg-gray-800 border-r border-gray-700 flex flex-col h-full shrink-0 z-10 shadow-xl overflow-y-auto">
+        <div class="p-5 border-b border-gray-700">
+            <h1 class="text-xl font-bold text-blue-400 mb-1">Geon Framework</h1>
+            <p class="text-sm text-gray-400">Deterministic Subatomic Proofs</p>
         </div>
-        <div class="row" style="margin-top: -80px">
-            <div class="row-label">Electron ($e^-$)</div>
-            <div style="flex:3;"></div>
+
+        <div class="p-5 flex-1 flex flex-col gap-4">
+            <!-- Navigation -->
+            <div class="flex flex-col gap-2">
+                <button id="btn-cfd" class="nav-btn w-full text-left px-4 py-3 rounded bg-blue-600 hover:bg-blue-500 transition-colors font-medium border border-blue-500">
+                    1. Subatomic CFD
+                </button>
+                <button id="btn-casimir" class="nav-btn w-full text-left px-4 py-3 rounded bg-gray-700 hover:bg-gray-600 transition-colors font-medium border border-gray-600">
+                    2. Optical Casimir Shift
+                </button>
+            </div>
+
+            <!-- Context Panel -->
+            <div id="context-panel" class="mt-4 bg-gray-900/50 p-4 rounded border border-gray-700 text-sm text-gray-300">
+                <!-- Content injected via JS -->
+            </div>
+
+            <!-- Controls Panel -->
+            <div id="controls-panel" class="mt-2 bg-gray-900/50 p-4 rounded border border-gray-700 text-sm flex flex-col gap-3">
+                 <!-- Content injected via JS -->
+            </div>
         </div>
-        <div class="row">
-            <div class="row-label">Proton ($p^+$)</div>
-            <div style="flex:3;"></div>
-        </div>
-        <div class="row">
-            <div class="row-label">Neutron ($n^0$)</div>
-            <div style="flex:3;"></div>
+
+        <div class="p-4 border-t border-gray-700 text-xs text-gray-500 text-center">
+            Based on Daniel Gezin's<br/>"Topological Architecture of the Electron"
         </div>
     </div>
-    <div id="canvas-container"></div>
+
+    <!-- Main Viewport -->
+    <div class="flex-1 relative w-full h-full bg-black">
+        <div id="canvas-container" class="absolute inset-0 w-full h-full"></div>
+
+        <!-- Overlay HUD (Optional, for phase shift readout, etc.) -->
+        <div id="hud-overlay" class="absolute top-5 right-5 pointer-events-none hidden">
+            <div class="bg-gray-900/80 backdrop-blur border border-gray-700 p-4 rounded text-right shadow-lg">
+                <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Live Measurement</div>
+                <div id="hud-readout" class="text-2xl font-mono text-green-400 font-bold">0.00 nm</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js and OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Use KaTeX for rendering the symbols if needed, but plain text handles the basic subscript well enough. Let's stick to plain text or basic HTML for speed unless needed -->
-    <script>
-        // Update DOM labels to use HTML sup/sub
-        document.querySelectorAll('.row-label')[0].innerHTML = 'Electron (e<sup>-</sup>)';
-        document.querySelectorAll('.row-label')[1].innerHTML = 'Proton (p<sup>+</sup>)';
-        document.querySelectorAll('.row-label')[2].innerHTML = 'Neutron (n<sup>0</sup>)';
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <!-- Application Logic -->
     <script src="app.js"></script>
 </body>
 </html>
